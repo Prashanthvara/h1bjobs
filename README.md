@@ -1,6 +1,6 @@
-# OpenNext Starter
+# H1B Cap Exempt Jobs
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Next.js app deployed to Cloudflare Workers via OpenNext.
 
 ## Getting Started
 
@@ -21,7 +21,7 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 ## Preview
 
-Preview the application locally on the Cloudflare runtime:
+Preview the application locally on the Cloudflare runtime (OpenNext):
 
 ```bash
 npm run preview
@@ -30,18 +30,17 @@ npm run preview
 
 ## Deploy
 
-Deploy the application to Cloudflare:
+Deploy the application to Cloudflare (OpenNext build + wrangler deploy):
 
 ```bash
 npm run deploy
 # or similar package manager command
 ```
 
-## Learn More
+## Cloudflare Build Only
 
-To learn more about Next.js, take a look at the following resources:
+Run just the OpenNext build:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build:cf
+```
