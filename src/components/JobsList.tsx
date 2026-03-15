@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -88,6 +88,11 @@ export function JobsList({ jobs, error }: JobsListProps) {
         return jobs.slice(startIndex, startIndex + PAGE_SIZE);
     }, [jobs, safePage]);
 
+    const goToPage = useCallback((page: number) => {
+        setCurrentPage(page);
+        document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" });
+    }, []);
+
     const paginationRange = useMemo(() => getPaginationRange(safePage, totalPages), [safePage, totalPages]);
     const isFirstPage = safePage === 1;
     const isLastPage = safePage === totalPages;
@@ -123,7 +128,7 @@ export function JobsList({ jobs, error }: JobsListProps) {
                     const keywords = normalizeJobKeywords(job.keywords);
                     const visibleKeywords = keywords.slice(0, 5);
                     const remainingKeywords = keywords.length - visibleKeywords.length;
-                    const sortedKeywords = [...visibleKeywords].sort((a, b) => b.length - a.length);
+                    const sortedKeywords = [...visibleKeywords].sort((a, b) => a.length - b.length);
                     const recent = isRecent(job.job_posting_date);
 
                     return (
@@ -199,7 +204,7 @@ export function JobsList({ jobs, error }: JobsListProps) {
                                 disabled={isFirstPage}
                                 onClick={() => {
                                     if (!isFirstPage) {
-                                        setCurrentPage(safePage - 1);
+                                        goToPage(safePage - 1);
                                     }
                                 }}
                                 className={isFirstPage ? "pointer-events-none opacity-50" : undefined}
@@ -212,7 +217,7 @@ export function JobsList({ jobs, error }: JobsListProps) {
                                 ) : (
                                     <PaginationLink
                                         isActive={page === safePage}
-                                        onClick={() => setCurrentPage(page)}
+                                        onClick={() => goToPage(page)}
                                     >
                                         {page}
                                     </PaginationLink>
@@ -224,7 +229,7 @@ export function JobsList({ jobs, error }: JobsListProps) {
                                 disabled={isLastPage}
                                 onClick={() => {
                                     if (!isLastPage) {
-                                        setCurrentPage(safePage + 1);
+                                        goToPage(safePage + 1);
                                     }
                                 }}
                                 className={isLastPage ? "pointer-events-none opacity-50" : undefined}

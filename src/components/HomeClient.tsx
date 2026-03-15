@@ -99,40 +99,39 @@ export function HomeClient({ initialJobs, initialError, showCompanies = true }: 
 		<div className="min-h-screen bg-white font-sans text-slate-900">
 			<Header />
 			<main className="flex flex-col items-center w-full">
-				<Hero />
+				<Hero>
+					{showCompanies && (
+						<div className="flex w-full md:w-auto rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+							<button
+								type="button"
+								onClick={() => setActiveTab("jobs")}
+								className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === "jobs"
+										? "bg-slate-900 text-white shadow-sm"
+										: "text-gray-600 hover:text-gray-900"
+									}`}
+							>
+								Explore Jobs
+								<span className={`ml-2 text-xs ${activeTab === "jobs" ? "text-white/70" : "text-gray-400"}`}>
+									{jobs.length}
+								</span>
+							</button>
+							<button
+								type="button"
+								onClick={() => setActiveTab("companies")}
+								className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === "companies"
+										? "bg-slate-900 text-white shadow-sm"
+										: "text-gray-600 hover:text-gray-900"
+									}`}
+							>
+								Explore Companies
+								<span className={`ml-2 text-xs ${activeTab === "companies" ? "text-white/70" : "text-gray-400"}`}>
+									{companies.length}
+								</span>
+							</button>
+						</div>
+					)}
+				</Hero>
 				<div id="jobs" className="w-full max-w-7xl px-6 md:px-12 pb-20 scroll-mt-4">
-					<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-						{showCompanies && (
-							<div className="flex w-full md:w-auto rounded-full border border-gray-200 bg-white p-1 shadow-sm">
-								<button
-									type="button"
-									onClick={() => setActiveTab("jobs")}
-									className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === "jobs"
-											? "bg-slate-900 text-white shadow-sm"
-											: "text-gray-600 hover:text-gray-900"
-										}`}
-								>
-									Explore Jobs
-									<span className={`ml-2 text-xs ${activeTab === "jobs" ? "text-white/70" : "text-gray-400"}`}>
-										{jobs.length}
-									</span>
-								</button>
-								<button
-									type="button"
-									onClick={() => setActiveTab("companies")}
-									className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === "companies"
-											? "bg-slate-900 text-white shadow-sm"
-											: "text-gray-600 hover:text-gray-900"
-										}`}
-								>
-									Explore Companies
-									<span className={`ml-2 text-xs ${activeTab === "companies" ? "text-white/70" : "text-gray-400"}`}>
-										{companies.length}
-									</span>
-								</button>
-							</div>
-						)}
-					</div>
 					<div className="flex flex-col lg:flex-row gap-12 lg:items-start">
 						<div className="w-full lg:w-1/3 xl:w-1/4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
 							{showJobs ? (

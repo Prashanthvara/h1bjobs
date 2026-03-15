@@ -8,7 +8,6 @@ export function Header() {
                     H1B Cap Exempt Jobs
                 </Link>
                 <nav className="flex gap-8 text-sm font-medium text-gray-600">
-                    <Link href="/jobs" className="hover:text-black transition-colors">Jobs</Link>
                     <Link href="/about" className="hover:text-black transition-colors">About</Link>
                 </nav>
             </div>

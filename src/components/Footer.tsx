@@ -8,7 +8,6 @@ export function Footer() {
 					&copy; {new Date().getFullYear()} H1B Cap Exempt Jobs
 				</div>
 				<nav className="flex gap-6 text-sm text-gray-500">
-					<Link href="/jobs" className="hover:text-gray-900 transition-colors">Jobs</Link>
 					<Link href="/about" className="hover:text-gray-900 transition-colors">About</Link>
 				</nav>
 			</div>

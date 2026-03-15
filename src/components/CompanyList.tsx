@@ -136,7 +136,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                     </div>
 
                                     {/* Desktop Layout (Preserved) */}
-                                    <div className="hidden md:grid md:grid-cols-[75px_minmax(10px,1fr)_150px] md:auto-rows-min md:gap-x-6 md:gap-y-1 md:items-start">
+                                    <div className="hidden md:grid md:grid-cols-[75px_minmax(10px,1fr)_max-content] md:auto-rows-min md:gap-x-6 md:gap-y-1 md:items-start">
                                         {/* Logo */}
                                         <div className="md:row-span-3 md:block">
                                             <div className="md:h-20 md:w-20 rounded-xl bg-gray-50 border border-gray-100 flex overflow-hidden shrink-0">

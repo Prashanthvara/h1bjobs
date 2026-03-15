@@ -115,9 +115,8 @@ export function JobsFilters({
 
                 <div className={`space-y-4 ${isOpen ? "block" : "hidden"} lg:block`}>
                     <div className="relative w-full">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                         <Input
-                            className="pl-10 pr-10 w-full h-11 border-gray-200 shadow-sm"
+                            className="pl-4 pr-10 w-full h-11 border-gray-200 shadow-sm"
                             placeholder="Search by title, org, or skill"
                             value={localSearchQuery}
                             onChange={(e) => setLocalSearchQuery(e.target.value)}
@@ -177,8 +176,6 @@ export function JobsFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
-                    <p className="text-xs text-gray-500">Visa-sponsored roles only.</p>
                 </div>
             </div>
         </div>

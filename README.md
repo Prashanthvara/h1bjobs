@@ -1,46 +1,54 @@
 # H1B Cap Exempt Jobs
 
-Next.js app deployed to Cloudflare Workers via OpenNext.
+A job board that helps international professionals find visa-sponsored roles at cap-exempt employers — universities, research institutes, and non-profits that can sponsor H-1B visas without the annual lottery.
+
+**Live site:** [h1bcapexemptjobs.com](https://h1bcapexemptjobs.com)
+
+## Features
+
+- Browse visa-sponsored job listings with filters for location, skills, date posted, and full-text search
+- Explore curated cap-exempt employers with H-1B approval history, departments, and direct career links
+- Server-rendered pages for SEO with 24-hour incremental static regeneration
+- Responsive design with dark/light mode favicon support
+- PWA-ready with web app manifest
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router, React 19)
+- **Styling:** Tailwind CSS 4, shadcn/ui, Radix UI
+- **Database:** Supabase (PostgreSQL)
+- **Deployment:** Cloudflare Workers via OpenNextJS
+- **Language:** TypeScript
 
 ## Getting Started
 
-Read the documentation at https://opennext.js.org/cloudflare.
-
-## Develop
-
-Run the Next.js development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
-# or similar package manager command
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-## Preview
+Create a `.env.local` file with:
 
-Preview the application locally on the Cloudflare runtime (OpenNext):
+```
+SUPABASE_URL=<your-supabase-url>
+SUPABASE_ANON_KEY=<your-supabase-anon-key>
+NEXT_PUBLIC_SITE_URL=<your-site-url>
+REVALIDATE_SECRET=<your-revalidation-secret>
+```
+
+## Deployment
 
 ```bash
+# Preview locally on Cloudflare runtime
 npm run preview
-# or similar package manager command
-```
 
-## Deploy
-
-Deploy the application to Cloudflare (OpenNext build + wrangler deploy):
-
-```bash
+# Deploy to Cloudflare Workers
 npm run deploy
-# or similar package manager command
-```
-
-## Cloudflare Build Only
-
-Run just the OpenNext build:
-
-```bash
-npm run build:cf
 ```

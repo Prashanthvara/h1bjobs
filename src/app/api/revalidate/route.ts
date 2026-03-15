@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
     }
 
     revalidatePath("/");
-    revalidatePath("/jobs");
 
     return NextResponse.json({ revalidated: true, at: new Date().toISOString() });
 }
