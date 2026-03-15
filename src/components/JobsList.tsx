@@ -14,19 +14,18 @@ import {
     PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Job } from "@/lib/jobTypes";
-import { normalizeJobKeywords, normalizeJobLocations } from "@/lib/jobFilterUtils";
+import { normalizeJobKeywords, normalizeJobLocations, parseJobDate } from "@/lib/jobFilterUtils";
 import Link from "next/link";
 
 interface JobsListProps {
     jobs: Job[];
-    isLoading?: boolean;
     error?: string | null;
 }
 
 function formatDate(value?: string | null) {
     if (!value) return "Date not listed";
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
+    const parsed = parseJobDate(value);
+    if (!parsed) return value;
 
     return new Intl.DateTimeFormat("en-US", {
         month: "short",
@@ -37,8 +36,8 @@ function formatDate(value?: string | null) {
 
 function isRecent(value?: string | null, days = 2) {
     if (!value) return false;
-    const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return false;
+    const parsed = parseJobDate(value);
+    if (!parsed) return false;
     const diffMs = Date.now() - parsed.getTime();
     return diffMs >= 0 && diffMs <= days * 24 * 60 * 60 * 1000;
 }
@@ -75,7 +74,7 @@ function getPaginationRange(currentPage: number, totalPages: number) {
     return rangeWithDots;
 }
 
-export function JobsList({ jobs, isLoading, error }: JobsListProps) {
+export function JobsList({ jobs, error }: JobsListProps) {
     const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
@@ -92,17 +91,6 @@ export function JobsList({ jobs, isLoading, error }: JobsListProps) {
     const paginationRange = useMemo(() => getPaginationRange(safePage, totalPages), [safePage, totalPages]);
     const isFirstPage = safePage === 1;
     const isLastPage = safePage === totalPages;
-
-    if (isLoading) {
-        return (
-            <div className="w-full flex flex-col gap-4">
-                <h3 className="font-bold text-xl">Explore Jobs</h3>
-                <div className="rounded-lg border border-gray-100 bg-white p-6 text-sm text-gray-500">
-                    Loading jobs...
-                </div>
-            </div>
-        );
-    }
 
     if (error) {
         return (
@@ -143,12 +131,12 @@ export function JobsList({ jobs, isLoading, error }: JobsListProps) {
                             <CardContent className="p-4 md:p-5">
                                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                                     <div className="min-w-0">
-                                        <div className="flex flex-wrap items-center gap-2">
+                                        <div className="flex items-baseline gap-2">
                                             <h4 className="font-semibold text-base md:text-lg text-gray-900">
                                                 {job.job_title || "Job title not listed"}
                                             </h4>
                                             {recent && (
-                                                <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-0">
+                                                <Badge variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-0 shrink-0">
                                                     New
                                                 </Badge>
                                             )}
@@ -163,12 +151,12 @@ export function JobsList({ jobs, isLoading, error }: JobsListProps) {
                                             <span>{formatDate(job.job_posting_date)}</span>
                                         </div>
                                         {visibleKeywords.length > 0 && (
-                                            <div className="mt-2 flex flex-wrap gap-2 xl:block xl:[column-width:14rem] 2xl:[column-width:16rem] xl:[column-gap:0.5rem]">
+                                            <div className="mt-2 flex flex-wrap gap-1.5">
                                                 {sortedKeywords.map((keyword) => (
                                                     <Badge
                                                         key={keyword}
                                                         variant="outline"
-                                                        className="text-xs max-w-full truncate xl:mb-2 xl:[break-inside:avoid] xl:[page-break-inside:avoid] xl:[column-break-inside:avoid]"
+                                                        className="text-xs"
                                                     >
                                                         {keyword}
                                                     </Badge>
@@ -176,7 +164,7 @@ export function JobsList({ jobs, isLoading, error }: JobsListProps) {
                                                 {remainingKeywords > 0 && (
                                                     <Badge
                                                         variant="outline"
-                                                        className="text-xs text-gray-500 max-w-full truncate xl:mb-2 xl:[break-inside:avoid] xl:[page-break-inside:avoid] xl:[column-break-inside:avoid]"
+                                                        className="text-xs text-gray-500"
                                                     >
                                                         +{remainingKeywords} more
                                                     </Badge>
@@ -208,11 +196,8 @@ export function JobsList({ jobs, isLoading, error }: JobsListProps) {
                     <PaginationContent>
                         <PaginationItem>
                             <PaginationPrevious
-                                href="#"
-                                aria-disabled={isFirstPage}
-                                tabIndex={isFirstPage ? -1 : undefined}
-                                onClick={(event) => {
-                                    event.preventDefault();
+                                disabled={isFirstPage}
+                                onClick={() => {
                                     if (!isFirstPage) {
                                         setCurrentPage(safePage - 1);
                                     }
@@ -226,12 +211,8 @@ export function JobsList({ jobs, isLoading, error }: JobsListProps) {
                                     <PaginationEllipsis />
                                 ) : (
                                     <PaginationLink
-                                        href="#"
                                         isActive={page === safePage}
-                                        onClick={(event) => {
-                                            event.preventDefault();
-                                            setCurrentPage(page);
-                                        }}
+                                        onClick={() => setCurrentPage(page)}
                                     >
                                         {page}
                                     </PaginationLink>
@@ -240,11 +221,8 @@ export function JobsList({ jobs, isLoading, error }: JobsListProps) {
                         ))}
                         <PaginationItem>
                             <PaginationNext
-                                href="#"
-                                aria-disabled={isLastPage}
-                                tabIndex={isLastPage ? -1 : undefined}
-                                onClick={(event) => {
-                                    event.preventDefault();
+                                disabled={isLastPage}
+                                onClick={() => {
                                     if (!isLastPage) {
                                         setCurrentPage(safePage + 1);
                                     }

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +25,6 @@ interface CompanyListProps {
 }
 
 export function CompanyList({ selectedLocation, selectedRole, selectedDepartment, companies = globalCompanies }: CompanyListProps) {
-    const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-
     let filteredCompanies = companies;
     filteredCompanies = filterCompaniesByLocation(selectedLocation, filteredCompanies);
     filteredCompanies = filterCompaniesByRole(selectedRole, filteredCompanies);
@@ -47,8 +44,6 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                         <AccordionItem value={company.id} className="border-none">
                             <Card
                                 className="hover:shadow-md transition-all border-gray-100 overflow-visible relative group"
-                                onMouseEnter={() => setHoveredCardId(company.id)}
-                                onMouseLeave={() => setHoveredCardId(null)}
                             >
                                 <CardContent className="p-4 md:p-6">
                                     {/* Mobile Layout (Variation 3 - Compact) */}
@@ -57,7 +52,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                         <div className="flex items-start gap-3">
                                             {/* Logo */}
                                             <div className="h-12 w-12 shrink-0 rounded-lg bg-gray-50 border border-gray-100 flex overflow-hidden items-center justify-center">
-                                                {company.logo_url && company.logo_url.startsWith("http") ? (
+                                                {company.logo_url ? (
                                                     <Image
                                                         src={company.logo_url}
                                                         alt={`${company.name} logo`}
@@ -88,22 +83,22 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                             {/* Social Icons */}
                                             <div className="flex items-center gap-3 shrink-0">
                                                 {company.website && (
-                                                    <Link href={company.website} target="_blank" className="text-gray-400 hover:text-blue-600">
+                                                    <Link href={company.website} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600">
                                                         <Globe className="h-4 w-4" />
                                                     </Link>
                                                 )}
                                                 {company.linkedin_url && (
-                                                    <Link href={company.linkedin_url} target="_blank" className="text-gray-400 hover:text-blue-700">
+                                                    <Link href={company.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-700">
                                                         <Linkedin className="h-4 w-4" />
                                                     </Link>
                                                 )}
                                                 {company.x_url && (
-                                                    <Link href={company.x_url} target="_blank" className="text-gray-400 hover:text-black">
+                                                    <Link href={company.x_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-black">
                                                         <XIcon className="h-4 w-4" />
                                                     </Link>
                                                 )}
                                                 {company.instagram_url && (
-                                                    <Link href={company.instagram_url} target="_blank" className="text-gray-400 hover:text-pink-600">
+                                                    <Link href={company.instagram_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-pink-600">
                                                         <Instagram className="h-4 w-4" />
                                                     </Link>
                                                 )}
@@ -113,8 +108,8 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
 
                                             {/* Tags */}
                                             <div className="flex items-center gap-1.5 shrink-0">
-                                                {company.tags.split(',').map((tag, index) => (
-                                                    <Badge variant="secondary" key={index} className="text-xs px-2 py-0.5 font-normal bg-gray-100 text-gray-600 hover:bg-gray-200 border-0">
+                                                {company.tags.split(',').map((tag) => (
+                                                    <Badge variant="secondary" key={tag.trim()} className="text-xs px-2 py-0.5 font-normal bg-gray-100 text-gray-600 hover:bg-gray-200 border-0">
                                                         {tag.trim()}
                                                     </Badge>
                                                 ))}
@@ -126,7 +121,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                             {/* Stats */}
                                             <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-2.5 py-1.5 rounded-full text-xs font-medium shrink-0">
                                                 <CheckCircle2 className="h-3.5 w-3.5" />
-                                                <span>{company.h1b_approvals} Approvals</span>
+                                                <span>{company.h1b_approvals} Approvals ({company.approvals_year})</span>
                                             </div>
 
                                             {/* Apply Button */}
@@ -145,7 +140,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                         {/* Logo */}
                                         <div className="md:row-span-3 md:block">
                                             <div className="md:h-20 md:w-20 rounded-xl bg-gray-50 border border-gray-100 flex overflow-hidden shrink-0">
-                                                {company.logo_url && company.logo_url.startsWith("http") ? (
+                                                {company.logo_url ? (
                                                     <Image
                                                         src={company.logo_url}
                                                         alt={`${company.name} logo`}
@@ -258,8 +253,8 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                                 </div>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
-                                                {company.tags.split(',').map((tag, index) => (
-                                                    <Badge variant="outline" key={index} className="text-sm">
+                                                {company.tags.split(',').map((tag) => (
+                                                    <Badge variant="outline" key={tag.trim()} className="text-sm">
                                                         {tag.trim()}
                                                     </Badge>
                                                 ))}
@@ -271,10 +266,10 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                             <div
                                                 className="flex items-center gap-1.5 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
                                                 role="status"
-                                                aria-label={`${company.h1b_approvals} H1B visa approvals`}
+                                                aria-label={`${company.h1b_approvals} H1B visa approvals in ${company.approvals_year}`}
                                             >
                                                 <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                                                <span>{company.h1b_approvals} H1B Approvals</span>
+                                                <span>{company.h1b_approvals} H1B Approvals ({company.approvals_year})</span>
                                             </div>
                                         </div>
 
@@ -297,8 +292,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                 </CardContent>
 
                                 {/* Read More Trigger - Positioned at bottom center, half over border */}
-                                <div className={`absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 transition-opacity duration-200 z-10 ${hoveredCardId === company.id ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                                    }`}>
+                                <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 z-10">
                                     <AccordionTrigger className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 py-1.5 px-4 hover:no-underline bg-white border border-gray-200 rounded-full shadow-sm">
                                         <span>Read More</span>
                                     </AccordionTrigger>
@@ -308,45 +302,40 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                 <AccordionContent>
                                     <div className="px-4 md:px-6 pb-6 pt-0">
                                         <div className="border-t border-gray-100 pt-4">
-                                            {/* Main container with responsive grid for better flow on larger screens */}
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
 
-                                                {/* Left column: Exemption details – Prioritize this as it's the core value prop */}
-                                                <div className="bg-blue-50 p-4 rounded-lg"> {/* Light background for emphasis */}
+                                                <div className="bg-blue-50 p-4 rounded-lg">
                                                     <h5 className="font-semibold text-blue-900 mb-3 flex items-center">
                                                         Why This Employer is H-1B Cap-Exempt
                                                     </h5>
                                                     <p className="text-gray-700">
-                                                        {company.exemptiondetails} {/* Keep as-is, but frame it positively */}
+                                                        {company.exemptiondetails}
                                                     </p>
                                                     <p className="mt-2 text-sm text-green-600 font-medium">
                                                         Benefit: Apply anytime without the lottery – more stability for your career!
-                                                    </p> {/* User-resonant callout */}
+                                                    </p>
                                                 </div>
 
-                                                {/* Right column: Opportunities – Group jobs and departments for a "job hunting" feel */}
                                                 <div>
                                                     <div className="space-y-4 text-gray-600">
 
-                                                        {/* Job Titles: Convert to bullets for scannability */}
                                                         <div>
                                                             <span className="font-medium block mb-1">Common Job Roles Sponsored:</span>
                                                             <ul className="list-disc pl-5 space-y-1">
-                                                                {company.jobtitles.split(', ').map((title, index) => (
-                                                                    <li key={index}>{title.trim()}</li>
+                                                                {company.jobtitles.split(', ').map((title) => (
+                                                                    <li key={title.trim()}>{title.trim()}</li>
                                                                 ))}
                                                             </ul>
                                                         </div>
 
-                                                        {/* Departments: Similarly, use bullets or chips for multi-items */}
                                                         <div>
                                                             <span className="font-medium block mb-1">Departments Actively Hiring:</span>
                                                             <div className="flex flex-wrap gap-2">
-                                                                {company.department.split(', ').map((dept, index) => (
-                                                                    <span key={index} className="bg-gray-100 px-3 py-1 rounded-full text-sm">
+                                                                {company.department.split(', ').map((dept) => (
+                                                                    <span key={dept.trim()} className="bg-gray-100 px-3 py-1 rounded-full text-sm">
                                                                         {dept.trim()}
                                                                     </span>
-                                                                ))} {/* Chips for a modern, tag-like feel */}
+                                                                ))}
                                                             </div>
                                                         </div>
 
@@ -355,7 +344,6 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
 
                                             </div>
 
-                                            {/* Optional footer for action – Resonates by guiding next steps */}
                                             <div className="mt-6 text-center text-sm text-gray-500">
                                                 Interested? Check <a href={company.careers_url} className="text-blue-600 hover:underline">{company.name} Careers</a> page for open positions.
                                                 <span className="text-gray-400 mx-1">|</span>
@@ -363,7 +351,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                                 <a href={company.source} className="text-blue-600 hover:underline">H-1BVisaJobs</a>
                                                 <span className="text-gray-400 mx-1">|</span>
                                                 <a href="https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub" className="text-blue-600 hover:underline">USCIS</a>
-                                            </div> {/* Assume you have a careers_url; adjust as needed */}
+                                            </div>
                                         </div>
                                     </div>
                                 </AccordionContent>

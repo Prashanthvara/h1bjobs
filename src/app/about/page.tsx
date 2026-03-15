@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export const metadata: Metadata = {
 	alternates: {
@@ -67,8 +69,21 @@ export default function About() {
                             </div>
                         </div>
                     </div>
+                    <div className="mt-16 rounded-xl border border-gray-100 bg-gray-50 p-8 text-center">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-3">Ready to explore cap-exempt roles?</h2>
+                        <p className="text-gray-600 mb-6 max-w-lg mx-auto">
+                            Browse hundreds of visa-sponsored positions at universities, research institutes, and non-profits.
+                        </p>
+                        <Link
+                            href="/"
+                            className="inline-flex items-center px-6 py-3 bg-slate-900 text-white font-semibold rounded-full shadow-sm hover:bg-slate-800 transition-colors"
+                        >
+                            Discover Open Roles
+                        </Link>
+                    </div>
                 </div>
             </main>
+            <Footer />
         </div>
     );
 }

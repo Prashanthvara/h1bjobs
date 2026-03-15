@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { SearchFilters } from "@/components/SearchFilters";
 import { CompanyList } from "@/components/CompanyList";
@@ -28,7 +29,6 @@ export function HomeClient({ initialJobs, initialError, showCompanies = true }: 
 	const showJobs = !showCompanies || activeTab === "jobs";
 
 	const jobs = initialJobs;
-	const jobsLoading = false;
 	const jobsError = initialError ?? null;
 
 	const [jobSelectedLocation, setJobSelectedLocation] = useState<string | undefined>(undefined);
@@ -100,35 +100,30 @@ export function HomeClient({ initialJobs, initialError, showCompanies = true }: 
 			<Header />
 			<main className="flex flex-col items-center w-full">
 				<Hero />
-				<div className="w-full max-w-7xl px-6 md:px-12 pb-20">
+				<div id="jobs" className="w-full max-w-7xl px-6 md:px-12 pb-20 scroll-mt-4">
 					<div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-						<div className="text-sm text-gray-500">
-							Browse visa-sponsored roles and cap-exempt employers in one place.
-						</div>
 						{showCompanies && (
 							<div className="flex w-full md:w-auto rounded-full border border-gray-200 bg-white p-1 shadow-sm">
 								<button
 									type="button"
 									onClick={() => setActiveTab("jobs")}
-									className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
-										activeTab === "jobs"
+									className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === "jobs"
 											? "bg-slate-900 text-white shadow-sm"
 											: "text-gray-600 hover:text-gray-900"
-									}`}
+										}`}
 								>
 									Explore Jobs
 									<span className={`ml-2 text-xs ${activeTab === "jobs" ? "text-white/70" : "text-gray-400"}`}>
-										{jobsLoading ? "…" : jobs.length}
+										{jobs.length}
 									</span>
 								</button>
 								<button
 									type="button"
 									onClick={() => setActiveTab("companies")}
-									className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
-										activeTab === "companies"
+									className={`flex-1 md:flex-none px-4 py-2 text-sm font-semibold rounded-full transition-colors ${activeTab === "companies"
 											? "bg-slate-900 text-white shadow-sm"
 											: "text-gray-600 hover:text-gray-900"
-									}`}
+										}`}
 								>
 									Explore Companies
 									<span className={`ml-2 text-xs ${activeTab === "companies" ? "text-white/70" : "text-gray-400"}`}>
@@ -138,8 +133,8 @@ export function HomeClient({ initialJobs, initialError, showCompanies = true }: 
 							</div>
 						)}
 					</div>
-					<div className="flex flex-col lg:flex-row gap-12">
-						<div className="w-full lg:w-1/3 xl:w-1/4">
+					<div className="flex flex-col lg:flex-row gap-12 lg:items-start">
+						<div className="w-full lg:w-1/3 xl:w-1/4 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:overflow-y-auto">
 							{showJobs ? (
 								<JobsFilters
 									selectedLocation={jobSelectedLocation}
@@ -170,7 +165,7 @@ export function HomeClient({ initialJobs, initialError, showCompanies = true }: 
 						</div>
 						<div className="w-full lg:w-2/3 xl:w-3/4">
 							{showJobs ? (
-								<JobsList jobs={filteredJobs} isLoading={jobsLoading} error={jobsError} />
+								<JobsList jobs={filteredJobs} error={jobsError} />
 							) : (
 								<CompanyList
 									selectedLocation={selectedLocation}
@@ -183,6 +178,7 @@ export function HomeClient({ initialJobs, initialError, showCompanies = true }: 
 					</div>
 				</div>
 			</main>
+			<Footer />
 		</div>
 	);
 }

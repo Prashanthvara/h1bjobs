@@ -1,13 +1,52 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+	{
+		key: "X-Content-Type-Options",
+		value: "nosniff",
+	},
+	{
+		key: "X-Frame-Options",
+		value: "DENY",
+	},
+	{
+		key: "Referrer-Policy",
+		value: "strict-origin-when-cross-origin",
+	},
+	{
+		key: "Permissions-Policy",
+		value: "camera=(), microphone=(), geolocation=()",
+	},
+	{
+		key: "Content-Security-Policy",
+		value: [
+			"default-src 'self'",
+			// 'unsafe-inline' required: Next.js injects inline hydration scripts without nonce middleware
+			"script-src 'self' 'unsafe-inline'",
+			// 'unsafe-inline' required: Radix UI (Tooltip, Accordion, Select, Popover) applies inline style attributes at runtime
+			"style-src 'self' 'unsafe-inline'",
+			// next/font/google self-hosts fonts at build time — no external font requests at runtime
+			"font-src 'self'",
+			// Company logos are self-hosted in /public/logos — no external image domains needed
+			// data: covers Next.js blur placeholder base64 URIs
+			"img-src 'self' data:",
+			// All Supabase fetches are server-side only — no client-side API calls in this app
+			"connect-src 'self'",
+			"frame-ancestors 'none'",
+			"object-src 'none'",
+			"base-uri 'self'",
+		].join("; "),
+	},
+];
+
 const nextConfig: NextConfig = {
-	images: {
-		remotePatterns: [
+	async headers() {
+		return [
 			{
-				protocol: "https",
-				hostname: "media.licdn.com",
+				source: "/(.*)",
+				headers: securityHeaders,
 			},
-		],
+		];
 	},
 };
 

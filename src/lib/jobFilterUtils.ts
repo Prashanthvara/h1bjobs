@@ -41,7 +41,7 @@ export function normalizeJobKeywords(keywords: Job["keywords"]): string[] {
     return [];
 }
 
-function parseJobDate(value?: string | null) {
+export function parseJobDate(value?: string | null) {
     if (!value) return null;
 
     if (value.includes("T")) {
