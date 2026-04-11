@@ -3,7 +3,7 @@ import Link from "next/link";
 export function Header() {
     return (
         <header className="w-full py-4 bg-white/95 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
-            <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+            <div className="max-w-7xl mx-auto px-7 md:px-[150px] flex justify-between items-center">
                 <Link href="/" className="font-bold text-xl tracking-tight hover:text-gray-700 transition-colors">
                     H1B Cap Exempt Jobs
                 </Link>

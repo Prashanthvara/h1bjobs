@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { companies as globalCompanies, Company } from "@/lib/mockData";
+import { Company } from "@/lib/companyTypes";
 import { filterCompaniesByLocation, filterCompaniesByRole, filterCompaniesByDepartment } from "@/lib/filterUtils";
+import { getDepartmentColor, getDepartmentTextColor } from "@/lib/departmentColors";
 import { MapPin, Globe, Linkedin, Instagram, Building2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -21,10 +22,10 @@ interface CompanyListProps {
     selectedLocation?: string;
     selectedRole?: string;
     selectedDepartment?: string;
-    companies?: Company[];
+    companies: Company[];
 }
 
-export function CompanyList({ selectedLocation, selectedRole, selectedDepartment, companies = globalCompanies }: CompanyListProps) {
+export function CompanyList({ selectedLocation, selectedRole, selectedDepartment, companies }: CompanyListProps) {
     let filteredCompanies = companies;
     filteredCompanies = filterCompaniesByLocation(selectedLocation, filteredCompanies);
     filteredCompanies = filterCompaniesByRole(selectedRole, filteredCompanies);
@@ -79,7 +80,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                         </div>
 
                                         {/* Row 2: Socials & Tags */}
-                                        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+                                        <div className="flex flex-wrap items-center gap-3 pb-1 -mx-4 px-4">
                                             {/* Social Icons */}
                                             <div className="flex items-center gap-3 shrink-0">
                                                 {company.website && (
@@ -107,7 +108,7 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                             <div className="w-px h-4 bg-gray-200 shrink-0"></div>
 
                                             {/* Tags */}
-                                            <div className="flex items-center gap-1.5 shrink-0">
+                                            <div className="flex flex-wrap gap-1.5">
                                                 {company.tags.split(',').map((tag) => (
                                                     <Badge variant="secondary" key={tag.trim()} className="text-xs px-2 py-0.5 font-normal bg-gray-100 text-gray-600 hover:bg-gray-200 border-0">
                                                         {tag.trim()}
@@ -331,11 +332,21 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                                         <div>
                                                             <span className="font-medium block mb-1">Departments Actively Hiring:</span>
                                                             <div className="flex flex-wrap gap-2">
-                                                                {company.department.split(', ').map((dept) => (
-                                                                    <span key={dept.trim()} className="bg-gray-100 px-3 py-1 rounded-full text-sm">
-                                                                        {dept.trim()}
-                                                                    </span>
-                                                                ))}
+                                                                {company.department.split(', ').map((dept) => {
+                                                                    const trimmed = dept.trim();
+                                                                    return (
+                                                                        <span 
+                                                                            key={trimmed} 
+                                                                            className="px-3 py-1 rounded-full text-sm font-medium"
+                                                                            style={{
+                                                                                backgroundColor: getDepartmentColor(trimmed),
+                                                                                color: getDepartmentTextColor(trimmed),
+                                                                            }}
+                                                                        >
+                                                                            {trimmed}
+                                                                        </span>
+                                                                    );
+                                                                })}
                                                             </div>
                                                         </div>
 
