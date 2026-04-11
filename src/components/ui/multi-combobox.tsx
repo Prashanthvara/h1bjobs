@@ -17,53 +17,61 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import type { ComboboxOption, ComboboxGroupedOptions } from "@/components/ui/combobox"
 
-export interface ComboboxOption {
-    value: string
-    label: string
-}
-
-export interface ComboboxGroupedOptions {
-    label: string
-    options: ComboboxOption[]
-}
-
-interface ComboboxProps {
+interface MultiComboboxProps {
     options?: ComboboxOption[]
     groupedOptions?: ComboboxGroupedOptions[]
-    value?: string
-    onValueChange?: (value: string) => void
+    values: string[]
+    onValuesChange: (values: string[]) => void
     placeholder?: string
     searchPlaceholder?: string
     emptyText?: string
     className?: string
 }
 
-export function Combobox({
+export function MultiCombobox({
     options,
     groupedOptions,
-    value,
-    onValueChange,
-    placeholder = "Select option...",
+    values,
+    onValuesChange,
+    placeholder = "Select...",
     searchPlaceholder = "Search...",
     emptyText = "No option found.",
     className,
-}: ComboboxProps) {
+}: MultiComboboxProps) {
     const [open, setOpen] = React.useState(false)
 
-    // Find selected option in either flat or grouped options
-    const selectedOption = React.useMemo(() => {
+    const selectedLabels = React.useMemo(() => {
+        const labels: string[] = []
         if (options) {
-            return options.find((option) => option.value === value)
+            for (const opt of options) {
+                if (values.includes(opt.value)) labels.push(opt.label)
+            }
         }
         if (groupedOptions) {
             for (const group of groupedOptions) {
-                const found = group.options.find((option) => option.value === value)
-                if (found) return found
+                for (const opt of group.options) {
+                    if (values.includes(opt.value)) labels.push(opt.label)
+                }
             }
         }
-        return undefined
-    }, [options, groupedOptions, value])
+        return labels
+    }, [options, groupedOptions, values])
+
+    const triggerLabel = React.useMemo(() => {
+        if (selectedLabels.length === 0) return null
+        if (selectedLabels.length === 1) return selectedLabels[0]
+        return `${selectedLabels[0]}, +${selectedLabels.length - 1} more`
+    }, [selectedLabels])
+
+    function toggleValue(val: string) {
+        if (values.includes(val)) {
+            onValuesChange(values.filter((v) => v !== val))
+        } else {
+            onValuesChange([...values, val])
+        }
+    }
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -74,22 +82,21 @@ export function Combobox({
                     aria-expanded={open}
                     className={cn(
                         "w-full h-11 justify-start text-left font-normal border-gray-200 shadow-sm",
-                        !value && "text-gray-500",
+                        values.length === 0 && "text-gray-500",
                         className
                     )}
                 >
                     <div className="flex min-w-0 flex-1 items-center justify-between">
                         <span className="truncate">
-                            {selectedOption ? selectedOption.label : placeholder}
+                            {triggerLabel ?? placeholder}
                         </span>
-
                         <div className="ml-2 flex shrink-0 items-center gap-1">
-                            {value && (
+                            {values.length > 0 && (
                                 <X
                                     className="h-4 w-4 shrink-0 opacity-50 cursor-pointer"
                                     onClick={(e) => {
                                         e.stopPropagation()
-                                        onValueChange?.("")
+                                        onValuesChange([])
                                     }}
                                 />
                             )}
@@ -98,7 +105,7 @@ export function Combobox({
                     </div>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] min-w-[200px] p-0" align="start">
+            <PopoverContent className="w-[--radix-popover-trigger-width] min-w-[200px] max-w-[300px] p-0" align="start">
                 <Command
                     filter={(itemValue, search) => {
                         const label = itemValue.split('|')[1] || ''
@@ -120,15 +127,14 @@ export function Combobox({
                                                 value={`${stateOption.value}|${stateOption.label}`}
                                                 onSelect={(currentValue) => {
                                                     const actualValue = currentValue.split('|')[0]
-                                                    onValueChange?.(actualValue === value ? "" : actualValue)
-                                                    setOpen(false)
+                                                    toggleValue(actualValue)
                                                 }}
                                                 className="text-xs font-medium text-muted-foreground"
                                             >
                                                 <Check
                                                     className={cn(
                                                         "mr-2 h-4 w-4",
-                                                        value === stateOption.value ? "opacity-100" : "opacity-0"
+                                                        values.includes(stateOption.value) ? "opacity-100" : "opacity-0"
                                                     )}
                                                 />
                                                 {stateOption.label}
@@ -140,15 +146,14 @@ export function Combobox({
                                                 value={`${option.value}|${option.label}`}
                                                 onSelect={(currentValue) => {
                                                     const actualValue = currentValue.split('|')[0]
-                                                    onValueChange?.(actualValue === value ? "" : actualValue)
-                                                    setOpen(false)
+                                                    toggleValue(actualValue)
                                                 }}
                                                 className="pl-4"
                                             >
                                                 <Check
                                                     className={cn(
                                                         "mr-2 h-4 w-4",
-                                                        value === option.value ? "opacity-100" : "opacity-0"
+                                                        values.includes(option.value) ? "opacity-100" : "opacity-0"
                                                     )}
                                                 />
                                                 {option.label}
@@ -165,14 +170,13 @@ export function Combobox({
                                         value={`${option.value}|${option.label}`}
                                         onSelect={(currentValue) => {
                                             const actualValue = currentValue.split('|')[0]
-                                            onValueChange?.(actualValue === value ? "" : actualValue)
-                                            setOpen(false)
+                                            toggleValue(actualValue)
                                         }}
                                     >
                                         <Check
                                             className={cn(
                                                 "mr-2 h-4 w-4",
-                                                value === option.value ? "opacity-100" : "opacity-0"
+                                                values.includes(option.value) ? "opacity-100" : "opacity-0"
                                             )}
                                         />
                                         {option.label}
