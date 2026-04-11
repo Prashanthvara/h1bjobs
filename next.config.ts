@@ -22,7 +22,8 @@ const securityHeaders = [
 		value: [
 			"default-src 'self'",
 			// 'unsafe-inline' required: Next.js injects inline hydration scripts without nonce middleware
-			"script-src 'self' 'unsafe-inline'",
+			// 'unsafe-eval' required in dev: React Fast Refresh uses eval()
+			`script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
 			// 'unsafe-inline' required: Radix UI (Tooltip, Accordion, Select, Popover) applies inline style attributes at runtime
 			"style-src 'self' 'unsafe-inline'",
 			// next/font/google self-hosts fonts at build time — no external font requests at runtime

@@ -14,7 +14,7 @@ export default function About() {
         <div className="min-h-screen bg-white font-sans text-slate-900">
             <Header />
             <main className="flex flex-col items-center w-full">
-                <div className="w-full max-w-4xl px-6 md:px-12 py-16">
+                <div className="w-full max-w-4xl px-7 md:px-[150px] py-16">
                     <h1 className="text-4xl font-bold mb-8">About H1B Cap Exempt Jobs</h1>
 
                     <div className="space-y-6 text-gray-700 leading-relaxed">

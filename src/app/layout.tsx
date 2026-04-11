@@ -1,18 +1,55 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Syne, Outfit } from "next/font/google";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/siteUrl";
 
 const normalizedSiteUrl = getSiteUrl();
 
-const geistSans = Geist({
-	variable: "--font-geist-sans",
-	subsets: ["latin"],
+const syne = Syne({
+  variable: "--font-syne",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const syneBold = Syne({
+  variable: "--font-syne-bold",
+  subsets: ["latin"],
+  weight: "700",
+});
+
+const syneExtraBold = Syne({
+  variable: "--font-syne-extrabold",
+  subsets: ["latin"],
+  weight: "800",
+});
+
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
+  weight: "400",
+});
+
+const outfitMedium = Outfit({
+  variable: "--font-outfit-medium",
+  subsets: ["latin"],
+  weight: "500",
+});
+
+const outfitSemiBold = Outfit({
+  variable: "--font-outfit-semibold",
+  subsets: ["latin"],
+  weight: "600",
+});
+
+const outfitBold = Outfit({
+  variable: "--font-outfit-bold",
+  subsets: ["latin"],
+  weight: "700",
 });
 
 const geistMono = Geist_Mono({
-	variable: "--font-geist-mono",
-	subsets: ["latin"],
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -55,14 +92,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-	children,
+  children,
 }: Readonly<{
-	children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-	return (
-		<html lang="en" suppressHydrationWarning>
-			<head />
-			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
-		</html>
-	);
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={`${syne.variable} ${syneBold.variable} ${syneExtraBold.variable} ${outfit.variable} ${outfitMedium.variable} ${outfitSemiBold.variable} ${outfitBold.variable} ${geistMono.variable} antialiased`}>{children}</body>
+    </html>
+  );
 }
