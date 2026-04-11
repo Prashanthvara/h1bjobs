@@ -1,4 +1,4 @@
-import { Company } from "./mockData";
+import { Company } from "./companyTypes";
 
 /**
  * Extract unique states from company locations

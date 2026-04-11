@@ -58,7 +58,7 @@ export function parseJobDate(value?: string | null) {
     return new Date(year, month - 1, day);
 }
 
-function startOfDay(date: Date) {
+export function startOfDay(date: Date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
@@ -127,24 +127,21 @@ export function getKeywordOptions(jobs: Job[]) {
     }));
 }
 
-export function filterJobsByLocation(selectedValue: string | undefined, jobs: Job[]) {
-    if (!selectedValue) return jobs;
+export function filterJobsByLocation(selectedValues: string[], jobs: Job[]) {
+    if (selectedValues.length === 0) return jobs;
 
-    const [type, value] = selectedValue.split(":");
-
-    if (type === "state") {
-        return jobs.filter((job) =>
-            normalizeJobLocations(job.location).some((loc) => loc.endsWith(`, ${value}`))
-        );
-    }
-
-    if (type === "city") {
-        return jobs.filter((job) =>
-            normalizeJobLocations(job.location).some((loc) => loc === value)
-        );
-    }
-
-    return jobs;
+    return jobs.filter((job) =>
+        normalizeJobLocations(job.location).some((loc) =>
+            selectedValues.some((sel) => {
+                const [type, ...rest] = sel.split(":");
+                const value = rest.join(":");
+                if (type === "state") return loc.endsWith(`, ${value}`);
+                if (type === "city") return loc === value;
+                if (type === "other") return loc.toLowerCase().includes(value.toLowerCase());
+                return false;
+            })
+        )
+    );
 }
 
 export function filterJobsByKeyword(selectedKeyword: string | undefined, jobs: Job[]) {
@@ -155,6 +152,50 @@ export function filterJobsByKeyword(selectedKeyword: string | undefined, jobs: J
     );
 }
 
+export function normalizeJobDepartments(department: Job["department"]): string[] {
+    if (!department) return [];
+    if (Array.isArray(department)) {
+        return department.map((d) => String(d).trim()).filter(Boolean);
+    }
+    if (typeof department === "string") {
+        return department
+            .split(",")
+            .map((d) => d.trim())
+            .filter(Boolean);
+    }
+    return [];
+}
+
+export function getDepartmentOptions(jobs: Job[]) {
+    const deptCounts = new Map<string, number>();
+
+    jobs.forEach((job) => {
+        const departments = normalizeJobDepartments(job.department);
+        departments.forEach((dept) => {
+            deptCounts.set(dept, (deptCounts.get(dept) || 0) + 1);
+        });
+    });
+
+    const sortedDepts = Array.from(deptCounts.keys()).sort((a, b) => {
+        const countDiff = (deptCounts.get(b) || 0) - (deptCounts.get(a) || 0);
+        if (countDiff !== 0) return countDiff;
+        return a.localeCompare(b);
+    });
+
+    return sortedDepts.map((dept) => ({
+        value: dept,
+        label: `${dept} (${deptCounts.get(dept)})`,
+    }));
+}
+
+export function filterJobsByDepartment(selectedDepartment: string | undefined, jobs: Job[]) {
+    if (!selectedDepartment) return jobs;
+
+    return jobs.filter((job) =>
+        normalizeJobDepartments(job.department).includes(selectedDepartment)
+    );
+}
+
 export function filterJobsByDateRange(selectedRange: JobDateRange | undefined, jobs: Job[]) {
     if (!selectedRange) return jobs;
 
@@ -162,7 +203,9 @@ export function filterJobsByDateRange(selectedRange: JobDateRange | undefined, j
     let cutoff: Date;
 
     if (selectedRange === "24h") {
-        cutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const today = startOfDay(now);
+        today.setDate(today.getDate() - 1);  // yesterday (today - 1)
+        cutoff = today;
     } else {
         const today = startOfDay(now);
         const daysBack = selectedRange === "7d" ? 6 : 29;

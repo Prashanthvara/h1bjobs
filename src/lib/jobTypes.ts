@@ -7,6 +7,7 @@ export interface Job {
     url: string | null;
     is_visa: boolean | null;
     keywords: string[] | string | null;
+    department: string[] | string | null;
 }
 
 export type JobDateRange = "24h" | "7d" | "30d";
