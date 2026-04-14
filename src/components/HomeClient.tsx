@@ -145,9 +145,7 @@ export function HomeClient({
 							>
 								Explore Jobs
 								<span className={`ml-2 text-xs ${activeTab === "jobs" ? "text-white/70" : "text-gray-400"}`}>
-									{filteredJobs.length !== (totalJobCount ?? jobs.length)
-										? `${filteredJobs.length.toLocaleString()} of ${totalJobCount?.toLocaleString() ?? jobs.length.toLocaleString()}`
-										: totalJobCount?.toLocaleString() ?? jobs.length.toLocaleString()}
+									{filteredJobs.length.toLocaleString()}
 								</span>
 							</button>
 							<button

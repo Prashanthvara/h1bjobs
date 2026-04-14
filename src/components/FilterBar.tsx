@@ -184,6 +184,7 @@ function JobsFilterBarInner({
     mobileOpen,
     setMobileOpen,
     hasActiveFilters,
+    activeFilterCount,
 }: JobsFilterBarProps & {
     localSearchQuery: string;
     setLocalSearchQuery: (v: string) => void;
@@ -374,7 +375,7 @@ function JobsFilterBarInner({
             {/* Result summary row */}
             <div className="max-w-7xl mx-auto px-7 md:px-[150px] py-3 flex items-center justify-between text-sm">
                 <div className="flex items-center gap-1.5 font-medium text-black">
-                    <span>{filteredCount === allJobsCount ? `${allJobsCount} jobs` : `Showing ${filteredCount} of ${allJobsCount} jobs`}</span>
+                    <span>{filteredCount === allJobsCount ? `${allJobsCount} jobs` : `${filteredCount} jobs`}</span>
                     {addedToday > 0 && (
                         <>
                             <span className="text-gray-300">·</span>
@@ -570,7 +571,7 @@ function CompaniesFilterBarInner({
 
             <div className="max-w-7xl mx-auto px-7 md:px-[150px] py-3 flex items-center justify-between text-sm">
                 <div className="font-medium text-black">
-                    {filteredCount === allCompaniesCount ? `${allCompaniesCount} companies` : `Showing ${filteredCount} of ${allCompaniesCount} companies`}
+                    {filteredCount === allCompaniesCount ? `${allCompaniesCount} companies` : `${filteredCount} companies`}
                 </div>
                 {hasActiveFilters && (
                     <Button
