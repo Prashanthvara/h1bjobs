@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist_Mono, Syne, Outfit } from "next/font/google";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/siteUrl";
+import { CloudflareAnalytics } from "@/components/CloudflareAnalytics";
 
 const normalizedSiteUrl = getSiteUrl();
 
@@ -99,7 +100,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={`${syne.variable} ${syneBold.variable} ${syneExtraBold.variable} ${outfit.variable} ${outfitMedium.variable} ${outfitSemiBold.variable} ${outfitBold.variable} ${geistMono.variable} antialiased`}>{children}</body>
+      <body className={`${syne.variable} ${syneBold.variable} ${syneExtraBold.variable} ${outfit.variable} ${outfitMedium.variable} ${outfitSemiBold.variable} ${outfitBold.variable} ${geistMono.variable} antialiased`}>
+        {children}
+        <CloudflareAnalytics />
+      </body>
     </html>
   );
 }
