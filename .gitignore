@@ -49,3 +49,6 @@ next-env.d.ts
 !.env.example
 .gstack/
 .playwright-mcp/
+
+# local docs / plans
+/docs
