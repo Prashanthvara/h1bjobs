@@ -23,7 +23,8 @@ const securityHeaders = [
 			"default-src 'self'",
 			// 'unsafe-inline' required: Next.js injects inline hydration scripts without nonce middleware
 			// 'unsafe-eval' required in dev: React Fast Refresh uses eval()
-			`script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
+			// static.cloudflareinsights.com serves the Web Analytics beacon script
+			`script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
 			// 'unsafe-inline' required: Radix UI (Tooltip, Accordion, Select, Popover) applies inline style attributes at runtime
 			"style-src 'self' 'unsafe-inline'",
 			// next/font/google self-hosts fonts at build time — no external font requests at runtime
@@ -32,7 +33,8 @@ const securityHeaders = [
 			// data: covers Next.js blur placeholder base64 URIs
 			"img-src 'self' data:",
 			// All Supabase fetches are server-side only — no client-side API calls in this app
-			"connect-src 'self'",
+			// cloudflareinsights.com receives Web Analytics beacon reports (POST /cdn-cgi/rum)
+			"connect-src 'self' https://cloudflareinsights.com",
 			"frame-ancestors 'none'",
 			"object-src 'none'",
 			"base-uri 'self'",
