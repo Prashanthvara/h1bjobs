@@ -331,6 +331,15 @@ function JobsFilterBarInner({
                     {/* Mobile expanded panel */}
                     {mobileOpen && (
                         <div className="md:hidden mt-3 space-y-3 pb-1">
+                            <MultiCombobox
+                                className="w-full h-10 text-sm font-medium"
+                                groupedOptions={locationOptions}
+                                values={selectedLocations}
+                                onValuesChange={onLocationsChange}
+                                placeholder="Location"
+                                searchPlaceholder="Search locations..."
+                                emptyText="No location found."
+                            />
                             <Combobox
                                 className="w-full h-10 text-sm font-medium"
                                 options={keywordOptions}

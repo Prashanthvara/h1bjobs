@@ -51,8 +51,16 @@ export function MultiCombobox({
         }
         if (groupedOptions) {
             for (const group of groupedOptions) {
-                for (const opt of group.options) {
-                    if (values.includes(opt.value)) labels.push(opt.label)
+                const stateOption = group.options.find((opt) => opt.value.startsWith("state:"))
+                const cityOptions = group.options.filter((opt) => opt.value.startsWith("city:"))
+                const allCitiesSelected =
+                    cityOptions.length > 0 && cityOptions.every((opt) => values.includes(opt.value))
+                if (allCitiesSelected && stateOption) {
+                    labels.push(stateOption.label)
+                } else {
+                    for (const opt of cityOptions) {
+                        if (values.includes(opt.value)) labels.push(opt.label)
+                    }
                 }
             }
         }
@@ -121,25 +129,34 @@ export function MultiCombobox({
                                 const cityOptions = group.options.filter((opt) => opt.value.startsWith("city:"))
                                 return (
                                     <CommandGroup key={group.label}>
-                                        {stateOption && (
-                                            <CommandItem
-                                                key={stateOption.value}
-                                                value={`${stateOption.value}|${stateOption.label}`}
-                                                onSelect={(currentValue) => {
-                                                    const actualValue = currentValue.split('|')[0]
-                                                    toggleValue(actualValue)
-                                                }}
-                                                className="text-xs font-medium text-muted-foreground"
-                                            >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        values.includes(stateOption.value) ? "opacity-100" : "opacity-0"
-                                                    )}
-                                                />
-                                                {stateOption.label}
-                                            </CommandItem>
-                                        )}
+                                        {stateOption && (() => {
+                                            const cityValues = cityOptions.map((opt) => opt.value)
+                                            const allCitiesSelected =
+                                                cityValues.length > 0 && cityValues.every((v) => values.includes(v))
+                                            return (
+                                                <CommandItem
+                                                    key={stateOption.value}
+                                                    value={`${stateOption.value}|${stateOption.label}`}
+                                                    onSelect={() => {
+                                                        if (allCitiesSelected) {
+                                                            onValuesChange(values.filter((v) => !cityValues.includes(v)))
+                                                        } else {
+                                                            const missing = cityValues.filter((v) => !values.includes(v))
+                                                            onValuesChange([...values, ...missing])
+                                                        }
+                                                    }}
+                                                    className="text-xs font-medium text-muted-foreground"
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            allCitiesSelected ? "opacity-100" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {stateOption.label}
+                                                </CommandItem>
+                                            )
+                                        })()}
                                         {cityOptions.map((option) => (
                                             <CommandItem
                                                 key={option.value}
