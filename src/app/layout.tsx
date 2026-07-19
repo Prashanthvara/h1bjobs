@@ -6,46 +6,15 @@ import { CloudflareAnalytics } from "@/components/CloudflareAnalytics";
 
 const normalizedSiteUrl = getSiteUrl();
 
+// Syne and Outfit are variable fonts: one file per family covers all weights.
 const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const syneBold = Syne({
-  variable: "--font-syne-bold",
-  subsets: ["latin"],
-  weight: "700",
-});
-
-const syneExtraBold = Syne({
-  variable: "--font-syne-extrabold",
-  subsets: ["latin"],
-  weight: "800",
 });
 
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  weight: "400",
-});
-
-const outfitMedium = Outfit({
-  variable: "--font-outfit-medium",
-  subsets: ["latin"],
-  weight: "500",
-});
-
-const outfitSemiBold = Outfit({
-  variable: "--font-outfit-semibold",
-  subsets: ["latin"],
-  weight: "600",
-});
-
-const outfitBold = Outfit({
-  variable: "--font-outfit-bold",
-  subsets: ["latin"],
-  weight: "700",
 });
 
 const geistMono = Geist_Mono({
@@ -100,7 +69,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={`${syne.variable} ${syneBold.variable} ${syneExtraBold.variable} ${outfit.variable} ${outfitMedium.variable} ${outfitSemiBold.variable} ${outfitBold.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${syne.variable} ${outfit.variable} ${geistMono.variable} antialiased`}>
+
         {children}
         <CloudflareAnalytics />
       </body>
