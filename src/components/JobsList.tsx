@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import { Company } from "@/lib/companyTypes";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { SponsoredJobCard } from "@/components/SponsoredJobCard";
+import { SponsoredJob, pickTwoSponsoredJobs } from "@/lib/sponsoredJobs";
 
 interface JobsListProps {
     jobs: Job[];
@@ -108,6 +110,7 @@ function getPaginationRange(currentPage: number, totalPages: number) {
 
 export function JobsList({ jobs, error, companies = [] }: JobsListProps) {
     const [currentPage, setCurrentPage] = useState(1);
+    const [sponsored, setSponsored] = useState<[SponsoredJob, SponsoredJob] | null>(null);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -117,6 +120,13 @@ export function JobsList({ jobs, error, companies = [] }: JobsListProps) {
 
     const totalPages = Math.max(1, Math.ceil(jobs.length / PAGE_SIZE));
     const safePage = Math.min(currentPage, totalPages);
+
+    // Picked client-side after mount (Math.random during SSR would cause a
+    // hydration mismatch); re-picked on page change so each page turn rotates.
+    useEffect(() => {
+        setSponsored(pickTwoSponsoredJobs());
+    }, [safePage]);
+
     const pagedJobs = useMemo(() => {
         const startIndex = (safePage - 1) * PAGE_SIZE;
         return jobs.slice(startIndex, startIndex + PAGE_SIZE);
@@ -149,11 +159,8 @@ export function JobsList({ jobs, error, companies = [] }: JobsListProps) {
         );
     }
 
-    return (
-        <div className="w-full flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-                {pagedJobs.map((job) => {
-                    const locations = normalizeJobLocations(job.location);
+    const cards: ReactNode[] = pagedJobs.map((job) => {
+        const locations = normalizeJobLocations(job.location);
                     const keywords = normalizeJobKeywords(job.keywords);
                     const departments = normalizeJobDepartments(job.department);
                     const visibleKeywords = keywords.slice(0, 5);
@@ -264,8 +271,17 @@ export function JobsList({ jobs, error, companies = [] }: JobsListProps) {
                             </CardContent>
                         </Card>
                     );
-                })}
-            </div>
+    });
+    if (sponsored) {
+        // Final visual positions 5 and 15 (1-based). Insert low index first;
+        // the second splice lands at 14 after the first shifts the array.
+        cards.splice(4, 0, <SponsoredJobCard key="sponsored-slot-1" job={sponsored[0]} />);
+        cards.splice(14, 0, <SponsoredJobCard key="sponsored-slot-2" job={sponsored[1]} />);
+    }
+
+    return (
+        <div className="w-full flex flex-col gap-4">
+            <div className="flex flex-col gap-2">{cards}</div>
             {totalPages > 1 && (
                 <Pagination>
                     <PaginationContent>
@@ -307,6 +323,12 @@ export function JobsList({ jobs, error, companies = [] }: JobsListProps) {
                         </PaginationItem>
                     </PaginationContent>
                 </Pagination>
+            )}
+            {sponsored && (
+                <p className="text-xs text-gray-500">
+                    Sponsored listings are referral partnerships — we may earn a bonus if
+                    you&apos;re hired through them. This never affects your pay or application.
+                </p>
             )}
         </div>
     );
