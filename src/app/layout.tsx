@@ -1,24 +1,14 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Syne, Outfit } from "next/font/google";
+import { Outfit } from "next/font/google";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { CloudflareAnalytics } from "@/components/CloudflareAnalytics";
 
 const normalizedSiteUrl = getSiteUrl();
 
-// Syne and Outfit are variable fonts: one file per family covers all weights.
-const syne = Syne({
-  variable: "--font-syne",
-  subsets: ["latin"],
-});
-
+// Outfit is a variable font: one file covers all weights.
 const outfit = Outfit({
   variable: "--font-outfit",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
 });
 
@@ -69,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
-      <body className={`${syne.variable} ${outfit.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${outfit.variable} antialiased`}>
 
         {children}
         <CloudflareAnalytics />
