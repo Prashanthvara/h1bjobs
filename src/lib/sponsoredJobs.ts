@@ -81,7 +81,8 @@ export const SPONSORED_JOBS: SponsoredJob[] = [
 ];
 
 // Client-side only (Math.random would cause an SSR hydration mismatch).
-export function pickTwoSponsoredJobs(): [SponsoredJob, SponsoredJob] {
+export function pickTwoSponsoredJobs(): [SponsoredJob, SponsoredJob] | null {
+    if (SPONSORED_JOBS.length < 2) return null;
     const first = Math.floor(Math.random() * SPONSORED_JOBS.length);
     let second = Math.floor(Math.random() * (SPONSORED_JOBS.length - 1));
     if (second >= first) second += 1;

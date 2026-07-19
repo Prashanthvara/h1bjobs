@@ -161,122 +161,122 @@ export function JobsList({ jobs, error, companies = [] }: JobsListProps) {
 
     const cards: ReactNode[] = pagedJobs.map((job) => {
         const locations = normalizeJobLocations(job.location);
-                    const keywords = normalizeJobKeywords(job.keywords);
-                    const departments = normalizeJobDepartments(job.department);
-                    const visibleKeywords = keywords.slice(0, 5);
-                    const remainingKeywords = keywords.length - visibleKeywords.length;
-                    const sortedKeywords = [...visibleKeywords].sort((a, b) => a.length - b.length);
-                    const recent = isRecent(job.job_posting_date);
-                    const logoUrl = getOrgLogo(orgLogoMap, job.org);
+        const keywords = normalizeJobKeywords(job.keywords);
+        const departments = normalizeJobDepartments(job.department);
+        const visibleKeywords = keywords.slice(0, 5);
+        const remainingKeywords = keywords.length - visibleKeywords.length;
+        const sortedKeywords = [...visibleKeywords].sort((a, b) => a.length - b.length);
+        const recent = isRecent(job.job_posting_date);
+        const logoUrl = getOrgLogo(orgLogoMap, job.org);
 
-                    return (
-                        <Card key={job.job_id} className="border-gray-200 hover:shadow-sm transition-all">
-                            <CardContent className="p-4 md:p-5">
-                                <div className="flex items-start md:items-center gap-3 md:gap-4">
-                                    {/* Org logo */}
-                                    <div className="shrink-0">
-                                        {logoUrl ? (
-                                            <div className="h-9 w-9 md:h-13 md:w-13 lg:h-15 lg:w-15 rounded-lg border border-gray-200 bg-white overflow-hidden flex items-center justify-center">
-                                                <Image
-                                                    src={logoUrl}
-                                                    alt={`${job.org} logo`}
-                                                    width={52}
-                                                    height={52}
-                                                    className="object-contain p-1"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="h-9 w-9 md:h-13 md:w-13 lg:h-15 lg:w-15 rounded-lg bg-indigo-50 flex items-center justify-center">
-                                                <span className="text-sm md:text-base lg:text-lg font-bold text-indigo-900">
-                                                    {getOrgInitial(job.org)}
-                                                </span>
-                                            </div>
+        return (
+            <Card key={job.job_id} className="border-gray-200 hover:shadow-sm transition-all">
+                <CardContent className="p-4 md:p-5">
+                    <div className="flex items-start md:items-center gap-3 md:gap-4">
+                        {/* Org logo */}
+                        <div className="shrink-0">
+                            {logoUrl ? (
+                                <div className="h-9 w-9 md:h-13 md:w-13 lg:h-15 lg:w-15 rounded-lg border border-gray-200 bg-white overflow-hidden flex items-center justify-center">
+                                    <Image
+                                        src={logoUrl}
+                                        alt={`${job.org} logo`}
+                                        width={52}
+                                        height={52}
+                                        className="object-contain p-1"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="h-9 w-9 md:h-13 md:w-13 lg:h-15 lg:w-15 rounded-lg bg-indigo-50 flex items-center justify-center">
+                                    <span className="text-sm md:text-base lg:text-lg font-bold text-indigo-900">
+                                        {getOrgInitial(job.org)}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                                <div className="min-w-0">
+                                    <div className="flex items-baseline gap-2.5">
+                                        <h4 className="font-semibold text-lg text-black leading-snug">
+                                            {job.job_title || "Job title not listed"}
+                                        </h4>
+                                        {recent && (
+                                            <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-0 shrink-0 font-semibold">
+                                                New
+                                            </Badge>
                                         )}
                                     </div>
-
-                                    {/* Content */}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-                                            <div className="min-w-0">
-                                                <div className="flex items-baseline gap-2.5">
-                                                    <h4 className="font-semibold text-lg text-black leading-snug">
-                                                        {job.job_title || "Job title not listed"}
-                                                    </h4>
-                                                    {recent && (
-                                                        <Badge variant="secondary" className="text-xs bg-green-50 text-green-700 border-0 shrink-0 font-semibold">
-                                                            New
-                                                        </Badge>
-                                                    )}
-                                                </div>
-                                                <div className="text-sm text-black mt-1.5 flex flex-wrap items-center gap-1.5">
-                                                    <span className="font-medium">
-                                                        {job.org || "Organization"}
-                                                    </span>
-                                                    <span className="text-gray-300">·</span>
-                                                    <span>{formatLocations(locations)}</span>
-                                                    <span className="text-gray-300">·</span>
-                                                    <span>{formatDate(job.job_posting_date)}</span>
-                                                </div>
-                                                {(departments.length > 0 || visibleKeywords.length > 0) && (
-                                                    <div className="mt-3 flex flex-wrap gap-1.5">
-                                                        {departments.map((dept) => (
-<Badge
-                                                                 key={dept}
-                                                                 variant="secondary"
-                                                                 className="text-xs font-semibold border-0 py-1 px-2.5"
-                                                                 style={{
-                                                                     backgroundColor: getDepartmentColor(dept),
-                                                                     color: getDepartmentTextColor(dept),
-                                                                 }}
-                                                             >
-                                                                {dept}
-                                                            </Badge>
-                                                        ))}
-                                                        {sortedKeywords.map((keyword) => (
-                                                            <Badge
-                                                                key={keyword}
-                                                                variant="secondary"
-                                                                className="text-xs font-medium bg-gray-100 text-black border-0 py-1 px-2.5"
-                                                            >
-                                                                {keyword}
-                                                            </Badge>
-                                                        ))}
-                                                        {remainingKeywords > 0 && (
-                                                            <Badge
-                                                                variant="secondary"
-                                                                className="text-xs text-gray-500 font-medium bg-gray-100 border-0 py-1 px-2.5"
-                                                            >
-                                                                +{remainingKeywords} more
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="shrink-0">
-                                                {job.url ? (
-                                                    <Link href={job.url} target="_blank" rel="noopener noreferrer">
-                                                        <Button size="sm" className="h-9 px-6 text-sm font-bold shadow-sm w-full md:w-auto bg-black hover:bg-gray-800 text-white rounded-lg">
-                                                            Apply
-                                                        </Button>
-                                                    </Link>
-                                                ) : (
-                                                    <Button size="sm" className="h-9 px-6 text-sm font-bold shadow-sm w-full md:w-auto bg-black text-white rounded-lg" disabled>
-                                                        Apply
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
+                                    <div className="text-sm text-black mt-1.5 flex flex-wrap items-center gap-1.5">
+                                        <span className="font-medium">
+                                            {job.org || "Organization"}
+                                        </span>
+                                        <span className="text-gray-300">·</span>
+                                        <span>{formatLocations(locations)}</span>
+                                        <span className="text-gray-300">·</span>
+                                        <span>{formatDate(job.job_posting_date)}</span>
                                     </div>
+                                    {(departments.length > 0 || visibleKeywords.length > 0) && (
+                                        <div className="mt-3 flex flex-wrap gap-1.5">
+                                            {departments.map((dept) => (
+                                                <Badge
+                                                    key={dept}
+                                                    variant="secondary"
+                                                    className="text-xs font-semibold border-0 py-1 px-2.5"
+                                                    style={{
+                                                        backgroundColor: getDepartmentColor(dept),
+                                                        color: getDepartmentTextColor(dept),
+                                                    }}
+                                                >
+                                                    {dept}
+                                                </Badge>
+                                            ))}
+                                            {sortedKeywords.map((keyword) => (
+                                                <Badge
+                                                    key={keyword}
+                                                    variant="secondary"
+                                                    className="text-xs font-medium bg-gray-100 text-black border-0 py-1 px-2.5"
+                                                >
+                                                    {keyword}
+                                                </Badge>
+                                            ))}
+                                            {remainingKeywords > 0 && (
+                                                <Badge
+                                                    variant="secondary"
+                                                    className="text-xs text-gray-500 font-medium bg-gray-100 border-0 py-1 px-2.5"
+                                                >
+                                                    +{remainingKeywords} more
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
-                            </CardContent>
-                        </Card>
-                    );
+                                <div className="shrink-0">
+                                    {job.url ? (
+                                        <Link href={job.url} target="_blank" rel="noopener noreferrer">
+                                            <Button size="sm" className="h-9 px-6 text-sm font-bold shadow-sm w-full md:w-auto bg-black hover:bg-gray-800 text-white rounded-lg">
+                                                Apply
+                                            </Button>
+                                        </Link>
+                                    ) : (
+                                        <Button size="sm" className="h-9 px-6 text-sm font-bold shadow-sm w-full md:w-auto bg-black text-white rounded-lg" disabled>
+                                            Apply
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
     });
     if (sponsored) {
         // Final visual positions 5 and 15 (1-based). Insert low index first;
         // the second splice lands at 14 after the first shifts the array.
-        cards.splice(4, 0, <SponsoredJobCard key="sponsored-slot-1" job={sponsored[0]} />);
-        cards.splice(14, 0, <SponsoredJobCard key="sponsored-slot-2" job={sponsored[1]} />);
+        cards.splice(4, 0, <SponsoredJobCard key={`sponsored-1-${sponsored[0].id}`} job={sponsored[0]} />);
+        cards.splice(14, 0, <SponsoredJobCard key={`sponsored-2-${sponsored[1].id}`} job={sponsored[1]} />);
     }
 
     return (
