@@ -7,6 +7,8 @@
 		"build": "next build",
 		"build:cf": "opennextjs-cloudflare build",
 		"lint": "next lint",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"deploy": "npm run build:cf && wrangler deploy",
 		"upload": "npm run build:cf && opennextjs-cloudflare upload",
 		"preview": "npm run build:cf && opennextjs-cloudflare preview"
@@ -38,6 +40,7 @@
 		"eslint-config-next": "15.4.6",
 		"tailwindcss": "^4",
 		"typescript": "^5",
+		"vitest": "^3.2.7",
 		"wrangler": "^4.51.0"
 	}
 }
