@@ -16,6 +16,7 @@ import {
 import { Job } from "@/lib/jobTypes";
 import { normalizeJobDepartments, normalizeJobKeywords, normalizeJobLocations, parseJobDate } from "@/lib/jobFilterUtils";
 import { getDepartmentColor, getDepartmentTextColor } from "@/lib/departmentColors";
+import { safeHref } from "@/lib/safeHref";
 import { Company } from "@/lib/companyTypes";
 import { Search } from "lucide-react";
 import Link from "next/link";
@@ -253,8 +254,8 @@ export function JobsList({ jobs, error, companies = [] }: JobsListProps) {
                                     )}
                                 </div>
                                 <div className="shrink-0">
-                                    {job.url ? (
-                                        <Link href={job.url} target="_blank" rel="noopener noreferrer">
+                                    {safeHref(job.url) ? (
+                                        <Link href={safeHref(job.url)} target="_blank" rel="noopener noreferrer">
                                             <Button size="sm" className="h-9 px-6 text-sm font-bold shadow-sm w-full md:w-auto bg-black hover:bg-gray-800 text-white rounded-lg">
                                                 Apply
                                             </Button>

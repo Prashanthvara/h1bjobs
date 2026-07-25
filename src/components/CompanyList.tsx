@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Company } from "@/lib/companyTypes";
 import { filterCompaniesByLocation, filterCompaniesByRole, filterCompaniesByDepartment } from "@/lib/filterUtils";
 import { getDepartmentColor, getDepartmentTextColor } from "@/lib/departmentColors";
+import { safeHref } from "@/lib/safeHref";
 import { MapPin, Globe, Linkedin, Instagram, Building2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -83,23 +84,23 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                         <div className="flex flex-wrap items-center gap-3 pb-1 -mx-4 px-4">
                                             {/* Social Icons */}
                                             <div className="flex items-center gap-3 shrink-0">
-                                                {company.website && (
-                                                    <Link href={company.website} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600">
+                                                {safeHref(company.website) && (
+                                                    <Link href={safeHref(company.website)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600">
                                                         <Globe className="h-4 w-4" />
                                                     </Link>
                                                 )}
-                                                {company.linkedin_url && (
-                                                    <Link href={company.linkedin_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-700">
+                                                {safeHref(company.linkedin_url) && (
+                                                    <Link href={safeHref(company.linkedin_url)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-700">
                                                         <Linkedin className="h-4 w-4" />
                                                     </Link>
                                                 )}
-                                                {company.x_url && (
-                                                    <Link href={company.x_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-black">
+                                                {safeHref(company.x_url) && (
+                                                    <Link href={safeHref(company.x_url)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-black">
                                                         <XIcon className="h-4 w-4" />
                                                     </Link>
                                                 )}
-                                                {company.instagram_url && (
-                                                    <Link href={company.instagram_url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-pink-600">
+                                                {safeHref(company.instagram_url) && (
+                                                    <Link href={safeHref(company.instagram_url)} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-pink-600">
                                                         <Instagram className="h-4 w-4" />
                                                     </Link>
                                                 )}
@@ -126,8 +127,8 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                             </div>
 
                                             {/* Apply Button */}
-                                            {company.careers_url && (
-                                                <Link href={company.careers_url} target="_blank" rel="noopener noreferrer">
+                                            {safeHref(company.careers_url) && (
+                                                <Link href={safeHref(company.careers_url)} target="_blank" rel="noopener noreferrer">
                                                     <Button size="sm" className="h-8 px-4 text-xs font-semibold shadow-sm">
                                                         Apply
                                                     </Button>
@@ -167,12 +168,12 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                                 <span>{company.location}</span>
                                                 <span className="text-gray-400 mx-1">|</span>
                                                 <div className="flex items-center gap-2">
-                                                    {company.website && (
+                                                    {safeHref(company.website) && (
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <Link
-                                                                        href={company.website}
+                                                                        href={safeHref(company.website)}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="p-2 text-gray-400 hover:text-blue-600 focus:text-blue-600 transition-colors"
@@ -188,12 +189,12 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     )}
-                                                    {company.linkedin_url && (
+                                                    {safeHref(company.linkedin_url) && (
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <Link
-                                                                        href={company.linkedin_url}
+                                                                        href={safeHref(company.linkedin_url)}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="p-2 text-gray-400 hover:text-blue-700 focus:text-blue-700 transition-colors"
@@ -209,12 +210,12 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     )}
-                                                    {company.x_url && (
+                                                    {safeHref(company.x_url) && (
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <Link
-                                                                        href={company.x_url}
+                                                                        href={safeHref(company.x_url)}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="p-2 text-gray-400 hover:text-black focus:text-black transition-colors"
@@ -230,12 +231,12 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                                             </Tooltip>
                                                         </TooltipProvider>
                                                     )}
-                                                    {company.instagram_url && (
+                                                    {safeHref(company.instagram_url) && (
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <Link
-                                                                        href={company.instagram_url}
+                                                                        href={safeHref(company.instagram_url)}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
                                                                         className="p-2 text-gray-400 hover:text-pink-600 focus:text-pink-600 transition-colors"
@@ -276,8 +277,8 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
 
                                         {/* Apply Button */}
                                         <div className="flex items-center justify-center md:row-span-2 md:row-start-2 md:col-start-3 md:items-start">
-                                            {company.careers_url && (
-                                                <Link href={company.careers_url} target="_blank" rel="noopener noreferrer">
+                                            {safeHref(company.careers_url) && (
+                                                <Link href={safeHref(company.careers_url)} target="_blank" rel="noopener noreferrer">
                                                     <Button
                                                         variant="default"
                                                         size="default"
@@ -356,10 +357,18 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                                             </div>
 
                                             <div className="mt-6 text-center text-sm text-gray-500">
-                                                Interested? Check <a href={company.careers_url} className="text-blue-600 hover:underline">{company.name} Careers</a> page for open positions.
+                                                Interested? Check {safeHref(company.careers_url) ? (
+                                                    <a href={safeHref(company.careers_url)} className="text-blue-600 hover:underline">{company.name} Careers</a>
+                                                ) : (
+                                                    <span>{company.name} Careers</span>
+                                                )} page for open positions.
                                                 <span className="text-gray-400 mx-1">|</span>
                                                 <span className="font-medium">Sources: </span>
-                                                <a href={company.source} className="text-blue-600 hover:underline">H-1BVisaJobs</a>
+                                                {safeHref(company.source) ? (
+                                                    <a href={safeHref(company.source)} className="text-blue-600 hover:underline">H-1BVisaJobs</a>
+                                                ) : (
+                                                    <span>H-1BVisaJobs</span>
+                                                )}
                                                 <span className="text-gray-400 mx-1">|</span>
                                                 <a href="https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub" className="text-blue-600 hover:underline">USCIS</a>
                                             </div>
