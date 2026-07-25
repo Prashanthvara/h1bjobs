@@ -52,3 +52,12 @@ next-env.d.ts
 
 # local docs / plans
 /docs
+
+# local analytics / security exports (never commit — this repo is public)
+# Root-scoped on purpose: a blanket *.csv would swallow legitimate data files
+# added under src/ or public/ later.
+# Comments must be on their own line — git has no trailing comments, so
+# "/*.csv  # note" would silently match nothing.
+/Account_SecurityInsights_*.csv
+/Analytics*.pdf
+/*.csv
