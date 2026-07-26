@@ -21,8 +21,15 @@ const securityHeaders = [
 		key: "Content-Security-Policy",
 		value: [
 			"default-src 'self'",
-			// 'unsafe-inline' required: Next.js injects inline hydration scripts without nonce middleware
-			// 'unsafe-eval' required in dev: React Fast Refresh uses eval()
+			// ACCEPTED RISK (reviewed 2026-07-25): 'unsafe-inline' means CSP provides no
+			// XSS mitigation for scripts. Kept deliberately — the nonce-based alternative
+			// requires middleware that reads a per-request nonce in the root layout, which
+			// forces dynamic rendering on every route and discards the ISR static caching
+			// this site depends on. The concrete threat it would have covered — a
+			// javascript: URI arriving in a database URL field — is instead closed at the
+			// source by safeHref() in src/lib/safeHref.ts.
+			// Revisit if this site ever adds authentication, forms, or user-generated content.
+			// 'unsafe-eval' required in dev only: React Fast Refresh uses eval()
 			// static.cloudflareinsights.com serves the Web Analytics beacon script
 			`script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com${process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : ""}`,
 			// 'unsafe-inline' required: Radix UI (Tooltip, Accordion, Select, Popover) applies inline style attributes at runtime
