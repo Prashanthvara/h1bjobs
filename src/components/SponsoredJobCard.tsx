@@ -1,8 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SponsoredJob, SPONSORED_ELIGIBILITY_NOTE } from "@/lib/sponsoredJobs";
-import { TriangleAlert } from "lucide-react";
+import { SponsoredJob } from "@/lib/sponsoredJobs";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -52,10 +51,6 @@ export function SponsoredJobCard({ job }: SponsoredJobCardProps) {
                                             {tag}
                                         </Badge>
                                     ))}
-                                </div>
-                                <div className="mt-2.5 flex items-center gap-1.5 text-xs font-medium text-amber-700">
-                                    <TriangleAlert className="h-3.5 w-3.5 shrink-0" />
-                                    {SPONSORED_ELIGIBILITY_NOTE}
                                 </div>
                             </div>
                             <div className="shrink-0">
