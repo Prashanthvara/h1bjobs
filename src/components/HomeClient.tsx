@@ -26,6 +26,7 @@ import {
 
 interface HomeClientProps {
 	initialJobs: Job[];
+	visaJobCount?: number;
 	initialError?: string | null;
 	initialCompanies: Company[];
 	companiesError?: string | null;
@@ -34,6 +35,7 @@ interface HomeClientProps {
 
 export function HomeClient({
 	initialJobs,
+	visaJobCount,
 	initialError,
 	initialCompanies,
 	companiesError,
@@ -143,7 +145,7 @@ export function HomeClient({
 							>
 								Explore Jobs
 								<span className={`ml-2 text-xs ${activeTab === "jobs" ? "text-white/70" : "text-gray-400"}`}>
-									{filteredJobs.length.toLocaleString()}
+									{(visaJobCount || jobs.length).toLocaleString()}
 								</span>
 							</button>
 							<button
