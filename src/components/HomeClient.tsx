@@ -26,7 +26,8 @@ import {
 
 interface HomeClientProps {
 	initialJobs: Job[];
-	visaJobCount?: number;
+	/** 30-day total; null when the count query failed, never an implicit 0. */
+	visaJobCount: number | null;
 	initialError?: string | null;
 	initialCompanies: Company[];
 	companiesError?: string | null;
@@ -145,7 +146,7 @@ export function HomeClient({
 							>
 								Explore Jobs
 								<span className={`ml-2 text-xs ${activeTab === "jobs" ? "text-white/70" : "text-gray-400"}`}>
-									{(visaJobCount || jobs.length).toLocaleString()}
+									{(visaJobCount ?? jobs.length).toLocaleString()}
 								</span>
 							</button>
 							<button

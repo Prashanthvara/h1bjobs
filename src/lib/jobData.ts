@@ -1,4 +1,4 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { Job } from "@/lib/jobTypes";
 
 const MISSING_CREDENTIALS =
@@ -20,6 +20,14 @@ function getClient(): SupabaseClient | null {
  * numbers.
  *
  * `now` is injectable so the behavior is testable without freezing the clock.
+ *
+ * Timezone note: this runs on the server (UTC on Workers, the build machine's
+ * zone during prerender), while `filterJobsByDateRange` runs in the visitor's
+ * zone. Around the UTC date rollover the two windows can differ by one day.
+ * `job_posting_date` is a bare `YYYY-MM-DD` with no timezone and the server
+ * cannot know the visitor's, so this is documented rather than fixed — the
+ * skew is ~1/30th of the count and far smaller than the deliberate gap between
+ * this total and the 1000 rows `fetchVisaJobs` returns.
  */
 export function getThirtyDayCutoff(now: Date = new Date()): string {
 	const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -38,11 +46,15 @@ export function getThirtyDayCutoff(now: Date = new Date()): string {
  * and transfers no rows (`head: true`), so it is not subject to the 1000-row
  * response cap that limits the card query. Expect the count to exceed the
  * number of cards on the page — that is the intended decoupling, not a bug.
+ *
+ * Returns `count: null` on failure rather than 0, so callers can distinguish a
+ * broken query from a genuine zero. Collapsing both to 0 would let a
+ * permanently failing count silently render a plausible-looking fallback.
  */
-export async function fetchVisaJobCount(): Promise<{ count: number; error: string | null }> {
+export async function fetchVisaJobCount(): Promise<{ count: number | null; error: string | null }> {
 	const supabase = getClient();
 	if (!supabase) {
-		return { count: 0, error: MISSING_CREDENTIALS };
+		return { count: null, error: MISSING_CREDENTIALS };
 	}
 
 	const { count, error } = await supabase
@@ -52,10 +64,10 @@ export async function fetchVisaJobCount(): Promise<{ count: number; error: strin
 		.gte("job_posting_date", getThirtyDayCutoff());
 
 	if (error) {
-		return { count: 0, error: error.message };
+		return { count: null, error: error.message };
 	}
 
-	return { count: count ?? 0, error: null };
+	return { count: count ?? null, error: null };
 }
 
 export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | null }> {
