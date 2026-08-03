@@ -1,6 +1,26 @@
 import { createClient } from "@supabase/supabase-js";
 import { Job } from "@/lib/jobTypes";
 
+/**
+ * First day of the rolling 30-day window, as `YYYY-MM-DD`.
+ *
+ * Counts back 29 days from the start of today so the window is 30 days
+ * inclusive — matching `filterJobsByDateRange`'s `"30d"` branch. If these two
+ * ever disagree, the tab badge and the "Last 30 days" filter report different
+ * numbers.
+ *
+ * `now` is injectable so the behavior is testable without freezing the clock.
+ */
+export function getThirtyDayCutoff(now: Date = new Date()): string {
+	const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	start.setDate(start.getDate() - 29);
+
+	const year = start.getFullYear();
+	const month = String(start.getMonth() + 1).padStart(2, "0");
+	const day = String(start.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+}
+
 export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | null }> {
 	const supabaseUrl = process.env.SUPABASE_URL;
 	const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
