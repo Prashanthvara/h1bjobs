@@ -86,6 +86,33 @@ export function getJobLocationOptions(jobs: Job[]) {
     const locations = getUniqueLocations(jobs);
     const states = getUniqueStates(locations);
 
+    // Distinct jobs, not occurrences. A job can list several locations, so the
+    // per-job `seen` sets stop one job from incrementing the same city or state
+    // twice. The state total is deliberately NOT the sum of its cities: clicking
+    // a state selects all its cities and filterJobsByLocation matches with
+    // .some(), so a job in two cities of one state is a single result.
+    const cityCounts = new Map<string, number>();
+    const stateCounts = new Map<string, number>();
+
+    jobs.forEach((job) => {
+        const seenCities = new Set<string>();
+        const seenStates = new Set<string>();
+
+        normalizeJobLocations(job.location).forEach((loc) => {
+            if (!seenCities.has(loc)) {
+                seenCities.add(loc);
+                cityCounts.set(loc, (cityCounts.get(loc) || 0) + 1);
+            }
+
+            const parts = loc.split(",");
+            if (parts.length < 2) return;
+            const state = parts[parts.length - 1].trim();
+            if (!state || seenStates.has(state)) return;
+            seenStates.add(state);
+            stateCounts.set(state, (stateCounts.get(state) || 0) + 1);
+        });
+    });
+
     return states.map((stateCode) => {
         const stateName = stateNameMap[stateCode] || stateCode;
         const citiesInState = locations.filter((location) =>
@@ -95,10 +122,15 @@ export function getJobLocationOptions(jobs: Job[]) {
         return {
             label: stateName,
             options: [
-                { value: `state:${stateCode}`, label: stateName },
+                {
+                    value: `state:${stateCode}`,
+                    label: stateName,
+                    count: stateCounts.get(stateCode) ?? 0,
+                },
                 ...citiesInState.map((city) => ({
                     value: `city:${city}`,
                     label: city,
+                    count: cityCounts.get(city) ?? 0,
                 })),
             ],
         };
