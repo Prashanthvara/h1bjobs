@@ -86,6 +86,33 @@ export function getJobLocationOptions(jobs: Job[]) {
     const locations = getUniqueLocations(jobs);
     const states = getUniqueStates(locations);
 
+    // Distinct jobs, not occurrences. A job can list several locations, so the
+    // per-job `seen` sets stop one job from incrementing the same city or state
+    // twice. The state total is deliberately NOT the sum of its cities: clicking
+    // a state selects all its cities and filterJobsByLocation matches with
+    // .some(), so a job in two cities of one state is a single result.
+    const cityCounts = new Map<string, number>();
+    const stateCounts = new Map<string, number>();
+
+    jobs.forEach((job) => {
+        const seenCities = new Set<string>();
+        const seenStates = new Set<string>();
+
+        normalizeJobLocations(job.location).forEach((loc) => {
+            if (!seenCities.has(loc)) {
+                seenCities.add(loc);
+                cityCounts.set(loc, (cityCounts.get(loc) || 0) + 1);
+            }
+
+            const parts = loc.split(",");
+            if (parts.length < 2) return;
+            const state = parts[parts.length - 1].trim();
+            if (!state || seenStates.has(state)) return;
+            seenStates.add(state);
+            stateCounts.set(state, (stateCounts.get(state) || 0) + 1);
+        });
+    });
+
     return states.map((stateCode) => {
         const stateName = stateNameMap[stateCode] || stateCode;
         const citiesInState = locations.filter((location) =>
@@ -95,10 +122,15 @@ export function getJobLocationOptions(jobs: Job[]) {
         return {
             label: stateName,
             options: [
-                { value: `state:${stateCode}`, label: stateName },
+                {
+                    value: `state:${stateCode}`,
+                    label: stateName,
+                    count: stateCounts.get(stateCode) ?? 0,
+                },
                 ...citiesInState.map((city) => ({
                     value: `city:${city}`,
                     label: city,
+                    count: cityCounts.get(city) ?? 0,
                 })),
             ],
         };
@@ -218,4 +250,31 @@ export function filterJobsByDateRange(selectedRange: JobDateRange | undefined, j
         if (!jobDate) return false;
         return jobDate >= cutoff;
     });
+}
+
+const DATE_RANGE_LABELS: Record<JobDateRange, string> = {
+    "24h": "Last 24 hours",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+};
+
+/**
+ * Date range options labelled with how many jobs each would return.
+ *
+ * The count comes from `filterJobsByDateRange` itself rather than a
+ * reimplementation of the cutoff arithmetic, so the number shown can never
+ * disagree with the filter the option applies.
+ *
+ * "Any time" is deliberately absent: it is the reset option, its count is just
+ * the basis size, and rendering it invites comparison with the tab badge's
+ * 30-day total, which is a different number over a different scope.
+ */
+export function getDateRangeOptions(
+    jobs: Job[]
+): Array<{ value: JobDateRange; label: string }> {
+    const ranges: JobDateRange[] = ["24h", "7d", "30d"];
+    return ranges.map((value) => ({
+        value,
+        label: `${DATE_RANGE_LABELS[value]} (${filterJobsByDateRange(value, jobs).length.toLocaleString()})`,
+    }));
 }

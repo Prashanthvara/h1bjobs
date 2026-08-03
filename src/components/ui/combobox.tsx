@@ -21,6 +21,10 @@ import {
 export interface ComboboxOption {
     value: string
     label: string
+    /** Faceted result count. Rendered in the dropdown only — never in a
+     * multi-select trigger, where one option's count would misrepresent the
+     * union of several selections. */
+    count?: number
 }
 
 export interface ComboboxGroupedOptions {

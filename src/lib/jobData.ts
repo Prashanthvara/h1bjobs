@@ -1,18 +1,80 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { Job } from "@/lib/jobTypes";
 
-export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | null }> {
+const MISSING_CREDENTIALS =
+	"Supabase credentials are missing. Add SUPABASE_URL and SUPABASE_ANON_KEY.";
+
+function getClient(): SupabaseClient | null {
 	const supabaseUrl = process.env.SUPABASE_URL;
 	const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+	if (!supabaseUrl || !supabaseAnonKey) return null;
+	return createClient(supabaseUrl, supabaseAnonKey);
+}
 
-	if (!supabaseUrl || !supabaseAnonKey) {
-		return {
-			jobs: [],
-			error: "Supabase credentials are missing. Add SUPABASE_URL and SUPABASE_ANON_KEY.",
-		};
+/**
+ * First day of the rolling 30-day window, as `YYYY-MM-DD`.
+ *
+ * Counts back 29 days from the start of today so the window is 30 days
+ * inclusive — matching `filterJobsByDateRange`'s `"30d"` branch. If these two
+ * ever disagree, the tab badge and the "Last 30 days" filter report different
+ * numbers.
+ *
+ * `now` is injectable so the behavior is testable without freezing the clock.
+ *
+ * Timezone note: this runs on the server (UTC on Workers, the build machine's
+ * zone during prerender), while `filterJobsByDateRange` runs in the visitor's
+ * zone. Around the UTC date rollover the two windows can differ by one day.
+ * `job_posting_date` is a bare `YYYY-MM-DD` with no timezone and the server
+ * cannot know the visitor's, so this is documented rather than fixed — the
+ * skew is ~1/30th of the count and far smaller than the deliberate gap between
+ * this total and the 1000 rows `fetchVisaJobs` returns.
+ */
+export function getThirtyDayCutoff(now: Date = new Date()): string {
+	const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+	start.setDate(start.getDate() - 29);
+
+	const year = start.getFullYear();
+	const month = String(start.getMonth() + 1).padStart(2, "0");
+	const day = String(start.getDate()).padStart(2, "0");
+	return `${year}-${month}-${day}`;
+}
+
+/**
+ * Count of visa jobs posted in the last 30 days.
+ *
+ * Deliberately independent of `fetchVisaJobs`: this asks Postgres for a number
+ * and transfers no rows (`head: true`), so it is not subject to the 1000-row
+ * response cap that limits the card query. Expect the count to exceed the
+ * number of cards on the page — that is the intended decoupling, not a bug.
+ *
+ * Returns `count: null` on failure rather than 0, so callers can distinguish a
+ * broken query from a genuine zero. Collapsing both to 0 would let a
+ * permanently failing count silently render a plausible-looking fallback.
+ */
+export async function fetchVisaJobCount(): Promise<{ count: number | null; error: string | null }> {
+	const supabase = getClient();
+	if (!supabase) {
+		return { count: null, error: MISSING_CREDENTIALS };
 	}
 
-	const supabase = createClient(supabaseUrl, supabaseAnonKey);
+	const { count, error } = await supabase
+		.from("job")
+		.select("job_id", { count: "exact", head: true })
+		.eq("is_visa", true)
+		.gte("job_posting_date", getThirtyDayCutoff());
+
+	if (error) {
+		return { count: null, error: error.message };
+	}
+
+	return { count: count ?? null, error: null };
+}
+
+export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | null }> {
+	const supabase = getClient();
+	if (!supabase) {
+		return { jobs: [], error: MISSING_CREDENTIALS };
+	}
 
 	// Job rows only (Supabase default 1000, most recent first). The tab toggle and
 	// summary row count what's rendered, so no exact-count scan is needed here.
