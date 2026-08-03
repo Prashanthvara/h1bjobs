@@ -12,14 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-	const [{ jobs, totalCount, error }, { companies, error: companiesError }] = await Promise.all([
+	const [{ jobs, error }, { companies, error: companiesError }] = await Promise.all([
 		fetchVisaJobs(),
 		fetchCompanies(),
 	]);
 	return (
 		<HomeClient
 			initialJobs={jobs}
-			totalJobCount={totalCount}
 			initialError={error}
 			initialCompanies={companies}
 			companiesError={companiesError}

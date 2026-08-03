@@ -26,7 +26,6 @@ import {
 
 interface HomeClientProps {
 	initialJobs: Job[];
-	totalJobCount?: number;
 	initialError?: string | null;
 	initialCompanies: Company[];
 	companiesError?: string | null;
@@ -35,7 +34,6 @@ interface HomeClientProps {
 
 export function HomeClient({
 	initialJobs,
-	totalJobCount,
 	initialError,
 	initialCompanies,
 	companiesError,
@@ -170,8 +168,6 @@ export function HomeClient({
 					<FilterBar
 						mode="jobs"
 						jobs={searchFilteredJobs}
-						allJobsCount={totalJobCount ?? jobs.length}
-						filteredCount={filteredJobs.length}
 						selectedLocations={jobSelectedLocations}
 						onLocationsChange={setJobSelectedLocations}
 						selectedKeyword={jobSelectedKeyword}

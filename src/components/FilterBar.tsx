@@ -37,8 +37,6 @@ import { parseJobDate, startOfDay } from "@/lib/jobFilterUtils";
 interface JobsFilterBarProps {
     mode: "jobs";
     jobs: Job[];
-    allJobsCount: number;
-    filteredCount: number;
     selectedLocations: string[];
     onLocationsChange: (values: string[]) => void;
     selectedKeyword?: string;
@@ -168,8 +166,6 @@ export function FilterBar(props: FilterBarProps) {
 
 function JobsFilterBarInner({
     jobs,
-    allJobsCount,
-    filteredCount,
     selectedLocations,
     onLocationsChange,
     selectedKeyword,
@@ -384,18 +380,12 @@ function JobsFilterBarInner({
             {/* Result summary row */}
             <div className="max-w-7xl mx-auto px-7 md:px-[150px] py-3 flex items-center justify-between text-sm">
                 <div className="flex items-center gap-1.5 font-medium text-black">
-                    <span>{filteredCount === allJobsCount ? `${allJobsCount} jobs` : `${filteredCount} jobs`}</span>
                     {addedToday > 0 && (
-                        <>
-                            <span className="text-gray-300">·</span>
-                            <span className="text-green-700">{addedToday} added yesterday</span>
-                        </>
+                        <span className="text-green-700">{addedToday} added yesterday</span>
                     )}
+                    {addedToday > 0 && lastUpdated && <span className="text-gray-300">·</span>}
                     {lastUpdated && (
-                        <>
-                            <span className="text-gray-300">·</span>
-                            <span className="text-gray-500">Updated {lastUpdated}</span>
-                        </>
+                        <span className="text-gray-500">Updated {lastUpdated}</span>
                     )}
                 </div>
                 {hasActiveFilters && (
