@@ -251,3 +251,30 @@ export function filterJobsByDateRange(selectedRange: JobDateRange | undefined, j
         return jobDate >= cutoff;
     });
 }
+
+const DATE_RANGE_LABELS: Record<JobDateRange, string> = {
+    "24h": "Last 24 hours",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+};
+
+/**
+ * Date range options labelled with how many jobs each would return.
+ *
+ * The count comes from `filterJobsByDateRange` itself rather than a
+ * reimplementation of the cutoff arithmetic, so the number shown can never
+ * disagree with the filter the option applies.
+ *
+ * "Any time" is deliberately absent: it is the reset option, its count is just
+ * the basis size, and rendering it invites comparison with the tab badge's
+ * 30-day total, which is a different number over a different scope.
+ */
+export function getDateRangeOptions(
+    jobs: Job[]
+): Array<{ value: JobDateRange; label: string }> {
+    const ranges: JobDateRange[] = ["24h", "7d", "30d"];
+    return ranges.map((value) => ({
+        value,
+        label: `${DATE_RANGE_LABELS[value]} (${filterJobsByDateRange(value, jobs).length.toLocaleString()})`,
+    }));
+}

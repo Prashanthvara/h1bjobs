@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getJobLocationOptions } from "./jobFilterUtils";
+import { getJobLocationOptions, getDateRangeOptions, filterJobsByDateRange } from "./jobFilterUtils";
 import type { Job } from "./jobTypes";
 
 const job = (locations: string[]) => ({ location: locations }) as Job;
@@ -44,5 +44,43 @@ describe("getJobLocationOptions counts", () => {
         const groups = getJobLocationOptions([job(["Ann Arbor, MI"])]);
         expect(findOption(groups, "city:Ann Arbor, MI")?.label).toBe("Ann Arbor, MI");
         expect(findOption(groups, "state:MI")?.label).toBe("Michigan");
+    });
+});
+
+describe("getDateRangeOptions", () => {
+    function daysAgo(n: number): string {
+        const d = new Date();
+        d.setDate(d.getDate() - n);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+            d.getDate()
+        ).padStart(2, "0")}`;
+    }
+
+    const dated = (date: string) => ({ job_posting_date: date }) as Job;
+
+    it("labels each range with its own result count", () => {
+        const options = getDateRangeOptions([
+            dated(daysAgo(0)),
+            dated(daysAgo(3)),
+            dated(daysAgo(20)),
+            dated(daysAgo(200)),
+        ]);
+        const byValue = Object.fromEntries(options.map((o) => [o.value, o.label]));
+        expect(byValue["24h"]).toBe("Last 24 hours (1)");
+        expect(byValue["7d"]).toBe("Last 7 days (2)");
+        expect(byValue["30d"]).toBe("Last 30 days (3)");
+    });
+
+    it("returns exactly the three ranges, and no 'Any time' entry", () => {
+        expect(getDateRangeOptions([]).map((o) => o.value)).toEqual(["24h", "7d", "30d"]);
+    });
+
+    it("counts agree with filterJobsByDateRange for the same input", () => {
+        const jobs = [dated(daysAgo(0)), dated(daysAgo(3)), dated(daysAgo(20))];
+        for (const value of ["24h", "7d", "30d"] as const) {
+            const expected = filterJobsByDateRange(value, jobs).length;
+            const label = getDateRangeOptions(jobs).find((o) => o.value === value)!.label;
+            expect(label).toContain(`(${expected})`);
+        }
     });
 });

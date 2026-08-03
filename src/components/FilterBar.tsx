@@ -19,6 +19,7 @@ import {
     filterJobsByDepartment,
     filterJobsByKeyword,
     filterJobsByLocation,
+    getDateRangeOptions,
     getDepartmentOptions,
     getJobLocationOptions,
     getKeywordOptions,
@@ -214,6 +215,14 @@ function JobsFilterBarInner({
         return filtered;
     }, [jobs, selectedLocations, selectedKeyword, selectedDateRange]);
 
+    const dateBasis = useMemo(() => {
+        let filtered = jobs;
+        filtered = filterJobsByLocation(selectedLocations, filtered);
+        filtered = filterJobsByKeyword(selectedKeyword, filtered);
+        filtered = filterJobsByDepartment(selectedDepartment, filtered);
+        return filtered;
+    }, [jobs, selectedLocations, selectedKeyword, selectedDepartment]);
+
     const locationOptions = useMemo(() => getJobLocationOptions(locationBasis), [locationBasis]);
     const keywordOptions = useMemo(() => getKeywordOptions(keywordBasis), [keywordBasis]);
     const departmentOptions = useMemo(() => getDepartmentOptions(departmentBasis), [departmentBasis]);
@@ -221,11 +230,7 @@ function JobsFilterBarInner({
     const addedToday = useMemo(() => countJobsAddedToday(jobs), [jobs]);
     const lastUpdated = useMemo(() => getLastUpdatedDate(jobs), [jobs]);
 
-    const dateOptions: Array<{ value: JobDateRange; label: string }> = [
-        { value: "24h", label: "Last 24 hours" },
-        { value: "7d", label: "Last 7 days" },
-        { value: "30d", label: "Last 30 days" },
-    ];
+    const dateOptions = useMemo(() => getDateRangeOptions(dateBasis), [dateBasis]);
 
     return (
         <div role="search" aria-label="Filter jobs" className="w-full">
