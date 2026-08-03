@@ -153,7 +153,12 @@ export function MultiCombobox({
                                                             allCitiesSelected ? "opacity-100" : "opacity-0"
                                                         )}
                                                     />
-                                                    {stateOption.label}
+                                                    <span className="flex-1 truncate">{stateOption.label}</span>
+                                                    {stateOption.count !== undefined && (
+                                                        <span className="ml-2 shrink-0 tabular-nums opacity-60">
+                                                            {stateOption.count.toLocaleString()}
+                                                        </span>
+                                                    )}
                                                 </CommandItem>
                                             )
                                         })()}
@@ -173,7 +178,12 @@ export function MultiCombobox({
                                                         values.includes(option.value) ? "opacity-100" : "opacity-0"
                                                     )}
                                                 />
-                                                {option.label}
+                                                <span className="flex-1 truncate">{option.label}</span>
+                                                {option.count !== undefined && (
+                                                    <span className="ml-2 shrink-0 tabular-nums opacity-60">
+                                                        {option.count.toLocaleString()}
+                                                    </span>
+                                                )}
                                             </CommandItem>
                                         ))}
                                     </CommandGroup>
