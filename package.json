@@ -10,7 +10,7 @@
 		"check:sponsored": "node scripts/check-sponsored.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"deploy": "npm run build:cf && wrangler deploy",
+		"deploy": "npm run build:cf && opennextjs-cloudflare populateCache && wrangler deploy",
 		"upload": "npm run build:cf && opennextjs-cloudflare upload",
 		"preview": "npm run build:cf && opennextjs-cloudflare preview"
 	},
