@@ -27,8 +27,10 @@ export interface Company {
  * NOT detect. Keep both.
  *
  * Never replace with select("*"): fetchCompanies() results are passed into
- * HomeClient, a client component, so every selected column is serialized into
- * the RSC payload and delivered to every visitor's browser.
+ * CompaniesClient, a client component, so every selected column is serialized
+ * into the RSC payload and delivered to every visitor of /companies. The home
+ * route no longer receives these rows at all — it fetches the much narrower
+ * COMPANY_SUMMARY_COLUMNS instead.
  */
 export const COMPANY_COLUMNS = [
     "id",
