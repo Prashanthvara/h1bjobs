@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Company } from "@/lib/companyTypes";
-import { filterCompaniesByLocation, filterCompaniesByRole, filterCompaniesByDepartment } from "@/lib/filterUtils";
 import { getDepartmentColor, getDepartmentTextColor } from "@/lib/departmentColors";
 import { safeHref } from "@/lib/safeHref";
 import { MapPin, Globe, Linkedin, Instagram, Building2, CheckCircle2 } from "lucide-react";
@@ -20,23 +19,14 @@ const XIcon = ({ className }: { className?: string }) => (
 );
 
 interface CompanyListProps {
-    selectedLocation?: string;
-    selectedRole?: string;
-    selectedDepartment?: string;
+    /** Already filtered and ordered by the caller — this component does not filter. */
     companies: Company[];
 }
 
-export function CompanyList({ selectedLocation, selectedRole, selectedDepartment, companies }: CompanyListProps) {
-    let filteredCompanies = companies;
-    filteredCompanies = filterCompaniesByLocation(selectedLocation, filteredCompanies);
-    filteredCompanies = filterCompaniesByRole(selectedRole, filteredCompanies);
-    filteredCompanies = filterCompaniesByDepartment(selectedDepartment, filteredCompanies);
-
+export function CompanyList({ companies }: CompanyListProps) {
     return (
-        <div className="w-full flex flex-col gap-6">
-            <h3 className="font-bold text-xl">Explore Companies</h3>
-            <div className="flex flex-col gap-4">
-                {filteredCompanies.map((company) => (
+        <div className="flex flex-col gap-4">
+                {companies.map((company) => (
                     <Accordion
                         key={company.id}
                         type="single"
@@ -379,7 +369,6 @@ export function CompanyList({ selectedLocation, selectedRole, selectedDepartment
                         </AccordionItem>
                     </Accordion>
                 ))}
-            </div>
         </div>
     );
 }

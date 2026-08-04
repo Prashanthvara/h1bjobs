@@ -214,12 +214,10 @@ export function HomeClient({
 							{companiesError}
 						</div>
 					) : (
-						<CompanyList
-							selectedLocation={selectedLocation}
-							selectedRole={selectedRole}
-							selectedDepartment={selectedDepartment}
-							companies={searchFilteredCompanies}
-						/>
+						<div className="w-full flex flex-col gap-6">
+							<h3 className="font-bold text-xl">Explore Companies</h3>
+							<CompanyList companies={filteredCompanies} />
+						</div>
 					)}
 				</div>
 			</main>
