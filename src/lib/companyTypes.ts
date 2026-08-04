@@ -48,3 +48,26 @@ export const COMPANY_COLUMNS = [
     "department",
     "source",
 ] as const satisfies readonly (keyof Company)[];
+
+/**
+ * The subset of company fields the home page needs.
+ *
+ * `/` cannot skip the company table entirely — job cards render company logos
+ * via buildOrgLogoMap in JobsList.tsx — but it has no use for the other
+ * fourteen columns. Selecting only these two keeps `exemptiondetails`
+ * (multi-sentence prose, per company) out of the RSC payload that every jobs
+ * visitor downloads. The full row set is fetched only by /companies.
+ */
+export type CompanySummary = Pick<Company, "name" | "logo_url">;
+
+/**
+ * The exact columns fetched by `fetchCompanySummaries`.
+ *
+ * Guarded the same way as COMPANY_COLUMNS: `satisfies` rejects a misspelled
+ * column at compile time, companyTypes.test.ts catches an omitted one at run
+ * time. Keep both.
+ */
+export const COMPANY_SUMMARY_COLUMNS = [
+    "name",
+    "logo_url",
+] as const satisfies readonly (keyof CompanySummary)[];
