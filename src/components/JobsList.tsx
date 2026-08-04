@@ -17,7 +17,7 @@ import { Job } from "@/lib/jobTypes";
 import { normalizeJobDepartments, normalizeJobKeywords, normalizeJobLocations, parseJobDate } from "@/lib/jobFilterUtils";
 import { getDepartmentColor, getDepartmentTextColor } from "@/lib/departmentColors";
 import { safeHref } from "@/lib/safeHref";
-import { Company } from "@/lib/companyTypes";
+import { CompanySummary } from "@/lib/companyTypes";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -27,10 +27,10 @@ import { SponsoredJob, pickTwoSponsoredJobs } from "@/lib/sponsoredJobs";
 interface JobsListProps {
     jobs: Job[];
     error?: string | null;
-    companies?: Company[];
+    companies?: CompanySummary[];
 }
 
-function buildOrgLogoMap(companies: Company[]): Map<string, string> {
+function buildOrgLogoMap(companies: CompanySummary[]): Map<string, string> {
     const map = new Map<string, string>();
     companies.forEach((company) => {
         if (company.logo_url) {

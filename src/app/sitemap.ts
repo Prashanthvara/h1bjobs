@@ -20,6 +20,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			priority: 1,
 		},
 		{
+			url: `${normalizedSiteUrl}/companies`,
+			lastModified: dynamicLastModified,
+			changeFrequency: "weekly",
+			priority: 0.8,
+		},
+		{
 			url: `${normalizedSiteUrl}/about`,
 			lastModified: aboutLastModified,
 			changeFrequency: "monthly",

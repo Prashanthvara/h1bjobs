@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { extractSecret } from "@/lib/revalidateSecret";
+import { REVALIDATE_PATHS } from "@/lib/revalidatePaths";
 
 export async function POST(request: NextRequest) {
     const secret = extractSecret(request.headers, request.nextUrl.searchParams.get("secret"));
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    revalidatePath("/");
+    REVALIDATE_PATHS.forEach((path) => revalidatePath(path));
 
     return NextResponse.json({ revalidated: true, at: new Date().toISOString() });
 }

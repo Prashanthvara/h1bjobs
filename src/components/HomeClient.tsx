@@ -4,10 +4,10 @@ import { useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
+import { ExploreTabs } from "@/components/ExploreTabs";
 import { FilterBar } from "@/components/FilterBar";
-import { CompanyList } from "@/components/CompanyList";
 import { JobsList } from "@/components/JobsList";
-import { Company } from "@/lib/companyTypes";
+import { CompanySummary } from "@/lib/companyTypes";
 import { Job, JobDateRange } from "@/lib/jobTypes";
 import {
 	filterJobsByDateRange,
@@ -18,63 +18,39 @@ import {
 	normalizeJobKeywords,
 	normalizeJobLocations,
 } from "@/lib/jobFilterUtils";
-import {
-	filterCompaniesByLocation,
-	filterCompaniesByRole,
-	filterCompaniesByDepartment,
-} from "@/lib/filterUtils";
 
 interface HomeClientProps {
 	initialJobs: Job[];
 	/** 30-day total; null when the count query failed, never an implicit 0. */
 	visaJobCount: number | null;
+	/**
+	 * Always null in practice — page.tsx throws before rendering when the jobs
+	 * query fails, rather than caching an error page for a day. Kept as the
+	 * seam for a future non-fatal degradation path; JobsList already renders
+	 * this state. Do not build logic that assumes it can be populated today.
+	 */
 	initialError?: string | null;
-	initialCompanies: Company[];
-	companiesError?: string | null;
-	showCompanies?: boolean;
+	/** Name and logo only — supplies job-card logos, not a company listing. */
+	companies: CompanySummary[];
+	/** null when the company query failed, so the tab omits the number. */
+	companyCount: number | null;
 }
 
 export function HomeClient({
 	initialJobs,
 	visaJobCount,
 	initialError,
-	initialCompanies,
-	companiesError,
-	showCompanies = true,
+	companies,
+	companyCount,
 }: HomeClientProps) {
-	const [activeTab, setActiveTab] = useState<"jobs" | "companies">("jobs");
-	const showJobs = !showCompanies || activeTab === "jobs";
-
 	const jobs = initialJobs;
 	const jobsError = initialError ?? null;
-	const companies = initialCompanies;
 
-	// Job filter state
 	const [jobSelectedLocations, setJobSelectedLocations] = useState<string[]>([]);
 	const [jobSelectedKeyword, setJobSelectedKeyword] = useState<string | undefined>(undefined);
 	const [jobSelectedDepartment, setJobSelectedDepartment] = useState<string | undefined>(undefined);
 	const [jobDateRange, setJobDateRange] = useState<JobDateRange | undefined>(undefined);
 	const [jobSearchQuery, setJobSearchQuery] = useState<string>("");
-
-	// Company filter state
-	const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
-	const [selectedRole, setSelectedRole] = useState<string | undefined>(undefined);
-	const [selectedDepartment, setSelectedDepartment] = useState<string | undefined>(undefined);
-	const [searchQuery, setSearchQuery] = useState<string>("");
-
-	const searchFilteredCompanies = useMemo(() => {
-		if (!searchQuery) return companies;
-
-		const query = searchQuery.toLowerCase();
-		return companies.filter((company) => {
-			return (
-				company.name.toLowerCase().includes(query) ||
-				company.jobtitles.toLowerCase().includes(query) ||
-				company.department.toLowerCase().includes(query) ||
-				company.tags.toLowerCase().includes(query)
-			);
-		});
-	}, [searchQuery, companies]);
 
 	const searchFilteredJobs = useMemo(() => {
 		if (!jobSearchQuery) return jobs;
@@ -106,21 +82,6 @@ export function HomeClient({
 		return filtered;
 	}, [jobDateRange, jobSelectedDepartment, jobSelectedKeyword, jobSelectedLocations, searchFilteredJobs]);
 
-	const filteredCompanies = useMemo(() => {
-		let filtered = searchFilteredCompanies;
-		filtered = filterCompaniesByLocation(selectedLocation, filtered);
-		filtered = filterCompaniesByRole(selectedRole, filtered);
-		filtered = filterCompaniesByDepartment(selectedDepartment, filtered);
-		return filtered;
-	}, [searchFilteredCompanies, selectedLocation, selectedRole, selectedDepartment]);
-
-	const handleClearFilters = () => {
-		setSelectedLocation(undefined);
-		setSelectedRole(undefined);
-		setSelectedDepartment(undefined);
-		setSearchQuery("");
-	};
-
 	const handleClearJobFilters = () => {
 		setJobSelectedLocations([]);
 		setJobSelectedKeyword(undefined);
@@ -133,91 +94,36 @@ export function HomeClient({
 		<div className="min-h-screen bg-white font-sans text-slate-900">
 			<Header />
 			<main className="flex flex-col items-center w-full">
-				<Hero>
-					{showCompanies && (
-						<div className="flex w-full md:w-auto rounded-full border border-gray-200 bg-white p-1 shadow-sm">
-							<button
-								type="button"
-								onClick={() => setActiveTab("jobs")}
-								className={`flex-1 md:flex-none px-4 py-2 text-sm font-bold rounded-full transition-colors ${activeTab === "jobs"
-									? "bg-black text-white shadow-sm"
-									: "text-black hover:text-black"
-									}`}
-							>
-								Explore Jobs
-								<span className={`ml-2 text-xs ${activeTab === "jobs" ? "text-white/70" : "text-gray-400"}`}>
-									{(visaJobCount ?? jobs.length).toLocaleString()}
-								</span>
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("companies")}
-								className={`flex-1 md:flex-none px-4 py-2 text-sm font-bold rounded-full transition-colors ${activeTab === "companies"
-									? "bg-black text-white shadow-sm"
-									: "text-black hover:text-black"
-									}`}
-							>
-								Explore Companies
-								<span className={`ml-2 text-xs ${activeTab === "companies" ? "text-white/70" : "text-gray-400"}`}>
-									{companies.length}
-								</span>
-							</button>
-						</div>
-					)}
+				<Hero
+					title="Your Alternative Path to H1B Sponsorship"
+					subtitle="Bring your skills to America's top universities, research institutes, and non-profits. Get your H1B sponsored while making a real-world impact."
+				>
+					<ExploreTabs
+						active="jobs"
+						jobCount={visaJobCount}
+						companyCount={companyCount}
+					/>
 				</Hero>
 
-				{/* Filter bar */}
-				{showJobs ? (
-					<FilterBar
-						mode="jobs"
-						jobs={searchFilteredJobs}
-						selectedLocations={jobSelectedLocations}
-						onLocationsChange={setJobSelectedLocations}
-						selectedKeyword={jobSelectedKeyword}
-						onKeywordChange={setJobSelectedKeyword}
-						selectedDepartment={jobSelectedDepartment}
-						onDepartmentChange={setJobSelectedDepartment}
-						selectedDateRange={jobDateRange}
-						onDateRangeChange={setJobDateRange}
-						searchQuery={jobSearchQuery}
-						onSearchChange={setJobSearchQuery}
-						onClearFilters={handleClearJobFilters}
-					/>
-				) : (
-					<FilterBar
-						mode="companies"
-						companies={searchFilteredCompanies}
-						allCompaniesCount={companies.length}
-						filteredCount={filteredCompanies.length}
-						selectedLocation={selectedLocation}
-						onLocationChange={setSelectedLocation}
-						selectedRole={selectedRole}
-						onRoleChange={setSelectedRole}
-						selectedDepartment={selectedDepartment}
-						onDepartmentChange={setSelectedDepartment}
-						searchQuery={searchQuery}
-						onSearchChange={setSearchQuery}
-						onClearFilters={handleClearFilters}
-					/>
-				)}
+				<FilterBar
+					mode="jobs"
+					jobs={searchFilteredJobs}
+					selectedLocations={jobSelectedLocations}
+					onLocationsChange={setJobSelectedLocations}
+					selectedKeyword={jobSelectedKeyword}
+					onKeywordChange={setJobSelectedKeyword}
+					selectedDepartment={jobSelectedDepartment}
+					onDepartmentChange={setJobSelectedDepartment}
+					selectedDateRange={jobDateRange}
+					onDateRangeChange={setJobDateRange}
+					searchQuery={jobSearchQuery}
+					onSearchChange={setJobSearchQuery}
+					onClearFilters={handleClearJobFilters}
+				/>
 
-				{/* Results - full width */}
 				<div id="jobs" className="w-full max-w-7xl mx-auto px-7 md:px-[150px] pb-20 scroll-mt-4">
 					<div className="border-b border-gray-200 mb-4"></div>
-					{showJobs ? (
-						<JobsList jobs={filteredJobs} error={jobsError} companies={companies} />
-					) : companiesError ? (
-						<div className="rounded-lg border border-red-100 bg-red-50 p-6 text-sm text-red-700">
-							{companiesError}
-						</div>
-					) : (
-						<CompanyList
-							selectedLocation={selectedLocation}
-							selectedRole={selectedRole}
-							selectedDepartment={selectedDepartment}
-							companies={searchFilteredCompanies}
-						/>
-					)}
+					<JobsList jobs={filteredJobs} error={jobsError} companies={companies} />
 				</div>
 			</main>
 			<Footer />

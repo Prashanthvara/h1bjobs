@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { COMPANY_COLUMNS, type Company } from "./companyTypes";
+import { COMPANY_COLUMNS, COMPANY_SUMMARY_COLUMNS, type Company, type CompanySummary } from "./companyTypes";
 
 describe("COMPANY_COLUMNS", () => {
 	it("lists exactly the fields declared on the Company interface", () => {
@@ -37,5 +37,40 @@ describe("COMPANY_COLUMNS", () => {
 
 	it("does not use a wildcard", () => {
 		expect(COMPANY_COLUMNS).not.toContain("*");
+	});
+});
+
+describe("COMPANY_SUMMARY_COLUMNS", () => {
+	it("lists exactly the fields declared on the CompanySummary type", () => {
+		// Same guard as COMPANY_COLUMNS above: `satisfies` catches a misspelled
+		// column at compile time, this catches an omitted one at run time.
+		const sample: CompanySummary = {
+			name: "",
+			logo_url: "",
+		};
+
+		expect([...COMPANY_SUMMARY_COLUMNS].sort()).toEqual(Object.keys(sample).sort());
+	});
+
+	it("contains no duplicates", () => {
+		expect(new Set(COMPANY_SUMMARY_COLUMNS).size).toBe(COMPANY_SUMMARY_COLUMNS.length);
+	});
+
+	it("does not use a wildcard", () => {
+		expect(COMPANY_SUMMARY_COLUMNS).not.toContain("*");
+	});
+
+	it("selects strictly fewer columns than the full company query", () => {
+		// The whole point of this projection is that it is smaller. If it ever
+		// grows to match COMPANY_COLUMNS, the homepage payload saving is gone
+		// and the second query is pure overhead.
+		expect(COMPANY_SUMMARY_COLUMNS.length).toBeLessThan(COMPANY_COLUMNS.length);
+	});
+
+	it("only names columns that exist in the full company query", () => {
+		const fullColumns = new Set<string>(COMPANY_COLUMNS);
+		COMPANY_SUMMARY_COLUMNS.forEach((column) => {
+			expect(fullColumns.has(column)).toBe(true);
+		});
 	});
 });
