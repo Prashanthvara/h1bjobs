@@ -17,11 +17,22 @@ function getClient(): SupabaseClient | null {
 }
 
 /**
- * Every company, every column. Used by /companies, which renders the full
- * employer directory. Do not call this from the home route — see
- * fetchCompanySummaries.
+ * Single query body shared by every company projection.
+ *
+ * The exported fetchers differ only in which column list they pass, so that
+ * difference is a visible argument here rather than two near-identical copies
+ * of this function. Copies would let a future edit silently widen the home
+ * route's projection back to every column — a change no test or typecheck
+ * would catch, because the cast below erases the row shape either way.
+ *
+ * Cast via unknown: passing a runtime-built column string means the Supabase
+ * client cannot infer the row shape and widens it to GenericStringError[]. The
+ * column constants are kept in sync with their types by companyTypes.test.ts
+ * and their satisfies clauses, so the shape is guaranteed at the source.
  */
-export async function fetchCompanies(): Promise<{ companies: Company[]; error: string | null }> {
+async function fetchCompanyRows<T>(
+	columns: readonly string[]
+): Promise<{ companies: T[]; error: string | null }> {
 	const supabase = getClient();
 	if (!supabase) {
 		return { companies: [], error: MISSING_CREDENTIALS };
@@ -29,18 +40,23 @@ export async function fetchCompanies(): Promise<{ companies: Company[]; error: s
 
 	const { data, error } = await supabase
 		.from("company")
-		.select(COMPANY_COLUMNS.join(", "))
+		.select(columns.join(", "))
 		.order("h1b_approvals", { ascending: false });
 
 	if (error) {
 		return { companies: [], error: error.message };
 	}
 
-	// Cast via unknown: passing a runtime-built column string means the Supabase
-	// client cannot infer the row shape and widens it to GenericStringError[].
-	// COMPANY_COLUMNS is kept in sync with Company by companyTypes.test.ts and
-	// the satisfies clause, so the shape is guaranteed at the source instead.
-	return { companies: (data ?? []) as unknown as Company[], error: null };
+	return { companies: (data ?? []) as unknown as T[], error: null };
+}
+
+/**
+ * Every company, every column. Used by /companies, which renders the full
+ * employer directory. Do not call this from the home route — see
+ * fetchCompanySummaries.
+ */
+export function fetchCompanies(): Promise<{ companies: Company[]; error: string | null }> {
+	return fetchCompanyRows<Company>(COMPANY_COLUMNS);
 }
 
 /**
@@ -54,21 +70,6 @@ export async function fetchCompanies(): Promise<{ companies: Company[]; error: s
  * ~16 rows and this select is unbounded, so length is the true total. Revisit
  * if the company table ever approaches 1000 rows.
  */
-export async function fetchCompanySummaries(): Promise<{ companies: CompanySummary[]; error: string | null }> {
-	const supabase = getClient();
-	if (!supabase) {
-		return { companies: [], error: MISSING_CREDENTIALS };
-	}
-
-	const { data, error } = await supabase
-		.from("company")
-		.select(COMPANY_SUMMARY_COLUMNS.join(", "))
-		.order("h1b_approvals", { ascending: false });
-
-	if (error) {
-		return { companies: [], error: error.message };
-	}
-
-	// Same unknown-cast rationale as fetchCompanies above.
-	return { companies: (data ?? []) as unknown as CompanySummary[], error: null };
+export function fetchCompanySummaries(): Promise<{ companies: CompanySummary[]; error: string | null }> {
+	return fetchCompanyRows<CompanySummary>(COMPANY_SUMMARY_COLUMNS);
 }

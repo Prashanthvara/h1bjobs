@@ -41,7 +41,10 @@ export function ExploreTabs({ active, jobCount, companyCount }: ExploreTabsProps
 	];
 
 	return (
-		<div className="flex w-full md:w-auto rounded-full border border-gray-200 bg-white p-1 shadow-sm">
+		<nav
+			aria-label="Explore"
+			className="flex w-full md:w-auto rounded-full border border-gray-200 bg-white p-1 shadow-sm"
+		>
 			{tabs.map((tab) => {
 				const isActive = tab.key === active;
 				return (
@@ -49,18 +52,28 @@ export function ExploreTabs({ active, jobCount, companyCount }: ExploreTabsProps
 						key={tab.key}
 						href={tab.href}
 						aria-current={isActive ? "page" : undefined}
+						// The href stays on the active tab so crawlers still see a
+						// complete pair of links, but the click is suppressed: the
+						// control this replaced was a no-op when already selected,
+						// and letting it navigate to the current URL would scroll a
+						// reading user back to the top for nothing. A self-link
+						// carries no crawl value, so blocking the click costs none.
+						onClick={isActive ? (event) => event.preventDefault() : undefined}
 						className={`${TAB_BASE} ${isActive ? "bg-black text-white shadow-sm" : "text-black hover:text-black"}`}
 					>
 						{tab.label}
 						{tab.count !== null && (
 							<span className={`ml-2 text-xs ${isActive ? "text-white/70" : "text-gray-400"}`}>
-								{tab.count.toLocaleString()}
+								{/* Locale pinned: the count is baked into static HTML at
+								    build time, so letting the client format it in its own
+								    locale ("1.262" vs "1,262") is a hydration mismatch. */}
+								{tab.count.toLocaleString("en-US")}
 							</span>
 						)}
 						<PendingHint />
 					</Link>
 				);
 			})}
-		</div>
+		</nav>
 	);
 }

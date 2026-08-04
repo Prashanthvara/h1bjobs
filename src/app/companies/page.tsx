@@ -6,39 +6,20 @@ import { ExploreTabs } from "@/components/ExploreTabs";
 import { CompaniesClient } from "@/components/CompaniesClient";
 import { fetchCompanies } from "@/lib/companyData";
 import { fetchVisaJobCount } from "@/lib/jobData";
-import { OG_IMAGE, OG_SITE_NAME } from "@/lib/sharedMetadata";
+import { routeMetadata } from "@/lib/sharedMetadata";
 
 export const revalidate = 86400;
 
-const DESCRIPTION =
-	"Browse H-1B cap-exempt employers that can sponsor a visa without the lottery. See past approvals, the departments actively hiring, and why each organization qualifies as cap-exempt.";
-
-const OG_TITLE = "H-1B Cap-Exempt Employers";
-
-export const metadata: Metadata = {
+// Built rather than hand-written: defining openGraph here would replace the
+// root layout's object outright, and forgetting the shared image would drop
+// this route's social preview with nothing failing. See sharedMetadata.ts.
+export const metadata: Metadata = routeMetadata({
 	title: "H-1B Cap-Exempt Employers — Universities, Research Institutes & Nonprofits",
-	description: DESCRIPTION,
-	alternates: {
-		canonical: "/companies",
-	},
-	// siteName and images are restated deliberately: defining openGraph here
-	// replaces the root layout's object entirely. Dropping either would leave
-	// this route with no social preview image.
-	openGraph: {
-		title: OG_TITLE,
-		description: DESCRIPTION,
-		url: "/companies",
-		siteName: OG_SITE_NAME,
-		images: [OG_IMAGE],
-		type: "website",
-	},
-	twitter: {
-		card: "summary_large_image",
-		title: OG_TITLE,
-		description: DESCRIPTION,
-		images: [OG_IMAGE.url],
-	},
-};
+	socialTitle: "H-1B Cap-Exempt Employers",
+	description:
+		"Browse H-1B cap-exempt employers that can sponsor a visa without the lottery. See past approvals, the departments actively hiring, and why each organization qualifies as cap-exempt.",
+	path: "/companies",
+});
 
 export default async function CompaniesPage() {
 	const [
