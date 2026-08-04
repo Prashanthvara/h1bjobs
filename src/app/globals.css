@@ -101,3 +101,47 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* Inline pending hint for <Link> navigations — see ExploreTabs.tsx.
+   Always rendered at a fixed size and toggled via opacity, so showing it can
+   never shift layout. The 100ms animation delay means a navigation that
+   resolves from the prefetch cache never flashes the dot. */
+.nav-hint {
+	display: inline-block;
+	width: 0.4em;
+	height: 0.4em;
+	margin-left: 0.35rem;
+	border-radius: 9999px;
+	background: currentColor;
+	opacity: 0;
+	visibility: hidden;
+}
+
+.nav-hint.is-pending {
+	visibility: visible;
+	animation-name: navHintFadeIn, navHintPulse;
+	animation-duration: 200ms, 1s;
+	animation-delay: 100ms, 100ms;
+	animation-timing-function: ease, ease-in-out;
+	animation-iteration-count: 1, infinite;
+	animation-fill-mode: forwards, none;
+}
+
+@keyframes navHintFadeIn {
+	to {
+		opacity: 0.6;
+	}
+}
+
+@keyframes navHintPulse {
+	50% {
+		opacity: 0.25;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nav-hint.is-pending {
+		animation: none;
+		opacity: 0.6;
+	}
+}

@@ -3,6 +3,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { getSiteUrl } from "@/lib/siteUrl";
 import { CloudflareAnalytics } from "@/components/CloudflareAnalytics";
+import { OG_IMAGE, OG_SITE_NAME } from "@/lib/sharedMetadata";
 
 const normalizedSiteUrl = getSiteUrl();
 
@@ -32,15 +33,8 @@ export const metadata: Metadata = {
 		title: "H1B Cap Exempt Jobs — Your Alternative Path to H1B Sponsorship",
 		description: "Discover visa-sponsored roles at cap-exempt universities, research institutes, and non-profits. Get your H1B sponsored while making a real-world impact.",
 		url: normalizedSiteUrl,
-		siteName: "H1B Cap Exempt Jobs",
-		images: [
-			{
-				url: "/og-image.png",
-				width: 1200,
-				height: 630,
-				alt: "H1B Cap Exempt Jobs — Visa-Sponsored Jobs & Cap-Exempt Employers",
-			},
-		],
+		siteName: OG_SITE_NAME,
+		images: [OG_IMAGE],
 		type: "website",
 	},
 	twitter: {
@@ -57,7 +51,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    // data-scroll-behavior is required because globals.css sets
+    // `scroll-behavior: smooth` on <html>. Next currently disables smooth
+    // scrolling during route transitions automatically, but warns that future
+    // versions will not — without it, the tab navigation added with /companies
+    // would eventually animate the scroll reset instead of jumping.
+    // https://nextjs.org/docs/messages/missing-data-scroll-behavior
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head />
       <body className={`${outfit.variable} antialiased`}>
 
