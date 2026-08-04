@@ -133,7 +133,10 @@ export function HomeClient({
 		<div className="min-h-screen bg-white font-sans text-slate-900">
 			<Header />
 			<main className="flex flex-col items-center w-full">
-				<Hero>
+				<Hero
+					title="Your Alternative Path to H1B Sponsorship"
+					subtitle="Bring your skills to America's top universities, research institutes, and non-profits. Get your H1B sponsored while making a real-world impact."
+				>
 					{showCompanies && (
 						<div className="flex w-full md:w-auto rounded-full border border-gray-200 bg-white p-1 shadow-sm">
 							<button
