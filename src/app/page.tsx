@@ -3,7 +3,11 @@ import { HomeClient } from "@/components/HomeClient";
 import { fetchVisaJobs, fetchVisaJobCount } from "@/lib/jobData";
 import { fetchCompanySummaries } from "@/lib/companyData";
 
-export const revalidate = 86400;
+// One hour, not a day: this page is a snapshot of Supabase, and the scraper
+// that writes new jobs also calls POST /api/revalidate (see README). This
+// window is the backstop for when that call is missed or fails — it bounds
+// staleness without giving up the KV cache hit rate that makes the page fast.
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
 	alternates: {
@@ -20,7 +24,7 @@ export default async function HomePage() {
 
 	// This render is cached for `revalidate` seconds, so without this guard a
 	// build (or background regeneration) that hits a Supabase failure would bake
-	// an error page into the cache and serve it for a full day. Throwing instead
+	// an error page into the cache and serve it for a full hour. Throwing instead
 	// fails the build, and on regeneration makes Next.js keep serving the last
 	// good cached page — both preferable to publishing a broken one.
 	if (error) {

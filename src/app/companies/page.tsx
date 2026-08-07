@@ -8,7 +8,11 @@ import { fetchCompanies } from "@/lib/companyData";
 import { fetchVisaJobCount } from "@/lib/jobData";
 import { routeMetadata } from "@/lib/sharedMetadata";
 
-export const revalidate = 86400;
+// One hour, not a day: this page is a snapshot of Supabase, and the scraper
+// that writes new jobs also calls POST /api/revalidate (see README). This
+// window is the backstop for when that call is missed or fails — it bounds
+// staleness without giving up the KV cache hit rate that makes the page fast.
+export const revalidate = 3600;
 
 // Built rather than hand-written: defining openGraph here would replace the
 // root layout's object outright, and forgetting the shared image would drop
@@ -28,7 +32,7 @@ export default async function CompaniesPage() {
 	] = await Promise.all([fetchCompanies(), fetchVisaJobCount()]);
 
 	// Same reasoning as the home route: this render is cached for `revalidate`
-	// seconds, so returning an error page here would serve it for a full day.
+	// seconds, so returning an error page here would serve it for a full hour.
 	// Throwing fails the build instead, and on background regeneration makes
 	// Next.js keep serving the last good cached page. The companies ARE this
 	// page, so unlike on /, there is nothing worth rendering without them.

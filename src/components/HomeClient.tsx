@@ -25,7 +25,7 @@ interface HomeClientProps {
 	visaJobCount: number | null;
 	/**
 	 * Always null in practice — page.tsx throws before rendering when the jobs
-	 * query fails, rather than caching an error page for a day. Kept as the
+	 * query fails, rather than caching an error page for an hour. Kept as the
 	 * seam for a future non-fatal degradation path; JobsList already renders
 	 * this state. Do not build logic that assumes it can be populated today.
 	 */
