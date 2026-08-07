@@ -8,9 +8,10 @@
 		"build:cf": "opennextjs-cloudflare build",
 		"lint": "next lint",
 		"check:sponsored": "node scripts/check-sponsored.mjs",
+		"revalidate": "node scripts/revalidate.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"deploy": "npm run build:cf && opennextjs-cloudflare deploy",
+		"deploy": "npm run build:cf && opennextjs-cloudflare deploy && npm run revalidate",
 		"upload": "npm run build:cf && opennextjs-cloudflare upload",
 		"preview": "npm run build:cf && opennextjs-cloudflare preview"
 	},
