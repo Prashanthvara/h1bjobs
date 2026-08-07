@@ -67,8 +67,9 @@ export function fetchCompanies(): Promise<{ companies: Company[]; error: string 
  * true` query. That differs from fetchVisaJobCount, which is deliberately
  * decoupled from fetchVisaJobs because Supabase caps responses at 1000 rows
  * and the job count exceeds what the row query returns. The company table is
- * ~16 rows and this select is unbounded, so length is the true total. Revisit
- * if the company table ever approaches 1000 rows.
+ * a few dozen rows and this select is unbounded, so length is the true total.
+ * Revisit if the company table ever approaches 1000 rows (Supabase's default
+ * max rows per response).
  */
 export function fetchCompanySummaries(): Promise<{ companies: CompanySummary[]; error: string | null }> {
 	return fetchCompanyRows<CompanySummary>(COMPANY_SUMMARY_COLUMNS);
