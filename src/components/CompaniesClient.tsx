@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { FilterBar } from "@/components/FilterBar";
 import { CompanyList } from "@/components/CompanyList";
 import { Company } from "@/lib/companyTypes";
+import type { CompanyJobCounts } from "@/lib/companyJobCounts";
 import {
 	filterCompaniesByLocation,
 	filterCompaniesByRole,
@@ -12,9 +13,11 @@ import {
 
 interface CompaniesClientProps {
 	companies: Company[];
+	/** Keyed by company id; a missing entry means no open jobs. */
+	jobCounts: CompanyJobCounts;
 }
 
-export function CompaniesClient({ companies }: CompaniesClientProps) {
+export function CompaniesClient({ companies, jobCounts }: CompaniesClientProps) {
 	const [selectedLocation, setSelectedLocation] = useState<string | undefined>(undefined);
 	const [selectedRole, setSelectedRole] = useState<string | undefined>(undefined);
 	const [selectedDepartment, setSelectedDepartment] = useState<string | undefined>(undefined);
@@ -71,7 +74,7 @@ export function CompaniesClient({ companies }: CompaniesClientProps) {
 				<div className="border-b border-gray-200 mb-4"></div>
 				<div className="w-full flex flex-col gap-6">
 					<h2 className="font-bold text-xl">All cap-exempt employers</h2>
-					<CompanyList companies={filteredCompanies} />
+					<CompanyList companies={filteredCompanies} jobCounts={jobCounts} />
 				</div>
 			</div>
 		</>

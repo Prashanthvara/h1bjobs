@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Company } from "@/lib/companyTypes";
+import type { CompanyJobCounts } from "@/lib/companyJobCounts";
 import { getDepartmentColor, getDepartmentTextColor } from "@/lib/departmentColors";
 import { safeHref } from "@/lib/safeHref";
 import { MapPin, Globe, Linkedin, Instagram, Building2, CheckCircle2 } from "lucide-react";
@@ -21,9 +22,11 @@ const XIcon = ({ className }: { className?: string }) => (
 interface CompanyListProps {
     /** Already filtered and ordered by the caller — this component does not filter. */
     companies: Company[];
+    /** Keyed by company id; a missing entry means no open jobs. */
+    jobCounts: CompanyJobCounts;
 }
 
-export function CompanyList({ companies }: CompanyListProps) {
+export function CompanyList({ companies, jobCounts }: CompanyListProps) {
     return (
         <div className="flex flex-col gap-4">
             {companies.map((company) => (
@@ -153,6 +156,11 @@ export function CompanyList({ companies }: CompanyListProps) {
                                     {/* Column 2 wrapper */}
                                     <div className="md:flex md:flex-col md:gap-2 md:col-start-2 md:row-start-1 md:row-span-3">
                                         <h4 className="font-bold text-lg text-gray-900 m-0">{company.name}</h4>
+                                        <p className="text-sm text-gray-500 m-0" data-testid="job-count-debug">
+                                            {jobCounts[company.id]
+                                                ? `${jobCounts[company.id].open} open / ${jobCounts[company.id].recent} recent / ${jobCounts[company.id].org}`
+                                                : "no open jobs"}
+                                        </p>
                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                             <MapPin className="h-4 w-4" />
                                             <span>{company.location}</span>
