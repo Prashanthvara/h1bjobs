@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { Job } from "@/lib/jobTypes";
+import { Job, type OrgDateRow } from "@/lib/jobTypes";
 
 const MISSING_CREDENTIALS =
 	"Supabase credentials are missing. Add SUPABASE_URL and SUPABASE_ANON_KEY.";
@@ -78,15 +78,68 @@ export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | nu
 
 	// Job rows only (Supabase default 1000, most recent first). The tab toggle and
 	// summary row count what's rendered, so no exact-count scan is needed here.
+	//
+	// The `job_id` tiebreaker is not cosmetic: `job_posting_date` is a bare date
+	// with many rows per day, so without a second sort key Postgres may return a
+	// different 1000 rows on each call. fetchVisaJobOrgDates below relies on
+	// getting the SAME window as this query — that is what makes a company
+	// card's "47 open jobs" match the 47 rows behind its link.
 	const { data, error } = await supabase
 		.from("job")
 		.select("job_id, org, job_title, location, job_posting_date, url, is_visa, keywords, department")
 		.eq("is_visa", true)
-		.order("job_posting_date", { ascending: false });
+		.order("job_posting_date", { ascending: false })
+		.order("job_id", { ascending: false });
 
 	if (error) {
 		return { jobs: [], error: error.message };
 	}
 
 	return { jobs: (data ?? []) as Job[], error: null };
+}
+
+/**
+ * The exact columns `fetchVisaJobOrgDates` selects.
+ *
+ * Guarded by jobData.test.ts the same way the company projections are: the
+ * `satisfies` clause rejects a column that is not on Job at compile time, the
+ * test rejects a changed list at run time.
+ */
+export const VISA_JOB_ORG_COLUMNS = [
+	"org",
+	"job_posting_date",
+] as const satisfies readonly (keyof Job)[];
+
+/**
+ * Employer and posting date for every visa job in the same window `/` renders.
+ *
+ * Deliberately a copy of `fetchVisaJobs`'s predicate and ordering with a
+ * narrower projection, NOT an aggregate `group by`. An aggregate would count
+ * rows the home page cannot display — it caps at Supabase's 1000-row default —
+ * so a card would advertise 300 jobs and its link would land on 40. Mirroring
+ * the query trades exactness for a promise the destination can keep.
+ *
+ * Two residual sources of drift, both bounded and accepted: `/` and
+ * `/companies` regenerate independently on their one-hour ISR windows, so one
+ * route can be up to an hour staler than the other; and the server/visitor
+ * timezone gap described on buildCompanyJobCounts.
+ */
+export async function fetchVisaJobOrgDates(): Promise<{ rows: OrgDateRow[]; error: string | null }> {
+	const supabase = getClient();
+	if (!supabase) {
+		return { rows: [], error: MISSING_CREDENTIALS };
+	}
+
+	const { data, error } = await supabase
+		.from("job")
+		.select(VISA_JOB_ORG_COLUMNS.join(", "))
+		.eq("is_visa", true)
+		.order("job_posting_date", { ascending: false })
+		.order("job_id", { ascending: false });
+
+	if (error) {
+		return { rows: [], error: error.message };
+	}
+
+	return { rows: (data ?? []) as unknown as OrgDateRow[], error: null };
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getThirtyDayCutoff } from "./jobData";
+import { getThirtyDayCutoff, VISA_JOB_ORG_COLUMNS } from "./jobData";
 import { filterJobsByDateRange } from "./jobFilterUtils";
 import type { Job } from "./jobTypes";
 
@@ -51,5 +51,18 @@ describe("getThirtyDayCutoff agrees with the '30d' filter boundary", () => {
 	it("drops a job posted the day before the cutoff", () => {
 		const cutoff = getThirtyDayCutoff();
 		expect(filterJobsByDateRange("30d", [job(dayBefore(cutoff))])).toHaveLength(0);
+	});
+});
+
+describe("VISA_JOB_ORG_COLUMNS", () => {
+	it("selects exactly the two fields buildCompanyJobCounts reads", () => {
+		// Widening this projection costs bandwidth on every /companies
+		// regeneration for data nothing renders; narrowing it silently zeroes
+		// every count. Both directions fail here.
+		expect([...VISA_JOB_ORG_COLUMNS].sort()).toEqual(["job_posting_date", "org"]);
+	});
+
+	it("does not use a wildcard", () => {
+		expect(VISA_JOB_ORG_COLUMNS).not.toContain("*");
 	});
 });
