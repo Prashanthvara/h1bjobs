@@ -101,3 +101,41 @@ curl -s https://h1bcapexemptjobs.com/companies | grep -o 'logo_url' | wc -l
 The second number is the rendered company count, and should match the `company`
 table. (It counts rows in the RSC payload rather than scraping markup, so
 restyling the page cannot break the check.)
+
+## Open job counts on /companies
+
+Each company card shows how many jobs the employer has open (30 days) and how
+many arrived this week (7 days), linking to `/?org=<employer>&range=30d`.
+
+The counts are **not** a database aggregate. They are computed over the same
+1000-row window the home page renders — `fetchVisaJobOrgDates` in
+`src/lib/jobData.ts` copies `fetchVisaJobs`'s predicate and ordering, down to
+the `job_id` tiebreaker that keeps the two queries returning the same rows.
+A `group by` would count rows the destination cannot display, so a card would
+advertise a number its own link contradicts.
+
+`company.name` joins to the free-text `job.org` through `normalizeOrgName`
+(`src/lib/orgName.ts`), which is also what the employer filter matches on. A
+company whose jobs are filed under a spelling that does not normalize to its
+name shows the empty state and nothing fails — run `npm run check:orgs` to see
+which employers those are:
+
+```bash
+npm run check:orgs
+```
+
+It prints the companies that matched no job, and the `job.org` values that
+matched no company. A pair that differs only in spelling is a real join bug; a
+company in neither list is simply outside the fetched window.
+
+That empty state reads "No recent openings in our feed" rather than "No open
+jobs". The distinction is load-bearing: the 1000-row window currently spans
+roughly 20 days, less than the 30-day window it is filtered by, so an employer
+can be hiring and still be absent from it. The counts mean "in our current
+listings", and the copy has to survive that reading.
+
+Two further known, bounded sources of drift: `/` and `/companies` regenerate on
+independent one-hour ISR windows, so one can be up to an hour staler than the
+other; and the date windows are evaluated in UTC on the server and in the
+visitor's timezone on the client, which can differ by a day around the
+rollover.
