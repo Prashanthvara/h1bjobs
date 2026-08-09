@@ -5,7 +5,8 @@ import { Hero } from "@/components/Hero";
 import { ExploreTabs } from "@/components/ExploreTabs";
 import { CompaniesClient } from "@/components/CompaniesClient";
 import { fetchCompanies } from "@/lib/companyData";
-import { fetchVisaJobCount } from "@/lib/jobData";
+import { fetchVisaJobCount, fetchVisaJobOrgDates } from "@/lib/jobData";
+import { buildCompanyJobCounts } from "@/lib/companyJobCounts";
 import { routeMetadata } from "@/lib/sharedMetadata";
 
 // One hour, not a day: this page is a snapshot of Supabase, and the scraper
@@ -29,7 +30,8 @@ export default async function CompaniesPage() {
 	const [
 		{ companies, error },
 		{ count: visaJobCount, error: countError },
-	] = await Promise.all([fetchCompanies(), fetchVisaJobCount()]);
+		{ rows: orgDateRows, error: orgDateError },
+	] = await Promise.all([fetchCompanies(), fetchVisaJobCount(), fetchVisaJobOrgDates()]);
 
 	// Same reasoning as the home route: this render is cached for `revalidate`
 	// seconds, so returning an error page here would serve it for a full hour.
@@ -46,6 +48,18 @@ export default async function CompaniesPage() {
 		console.error("visa job count query failed:", countError);
 	}
 
+	// Not thrown, unlike the companies query above: losing these counts costs
+	// one line on each card, while the directory itself still renders. Cards
+	// fall back to the "no recent openings" state — visibly wrong rather than
+	// invisibly wrong, which is the tradeoff this route already makes for the
+	// tab badge. `observability` is enabled in wrangler.jsonc, so this reaches
+	// the logs.
+	if (orgDateError) {
+		console.error("job org/date query failed:", orgDateError);
+	}
+
+	const jobCounts = buildCompanyJobCounts(companies, orgDateRows);
+
 	return (
 		<div className="min-h-screen bg-white font-sans text-slate-900">
 			<Header />
@@ -61,7 +75,7 @@ export default async function CompaniesPage() {
 					/>
 				</Hero>
 
-				<CompaniesClient companies={companies} />
+				<CompaniesClient companies={companies} jobCounts={jobCounts} />
 			</main>
 			<Footer />
 		</div>

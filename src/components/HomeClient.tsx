@@ -1,12 +1,14 @@
 "use client"
 
-import { useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { ExploreTabs } from "@/components/ExploreTabs";
 import { FilterBar } from "@/components/FilterBar";
 import { JobsList } from "@/components/JobsList";
+import { JobUrlFilters } from "@/components/JobUrlFilters";
+import type { JobUrlFilterValues } from "@/lib/jobUrlFilters";
 import { CompanySummary } from "@/lib/companyTypes";
 import { Job, JobDateRange } from "@/lib/jobTypes";
 import {
@@ -14,6 +16,7 @@ import {
 	filterJobsByDepartment,
 	filterJobsByKeyword,
 	filterJobsByLocation,
+	filterJobsByOrg,
 	normalizeJobDepartments,
 	normalizeJobKeywords,
 	normalizeJobLocations,
@@ -48,6 +51,7 @@ export function HomeClient({
 
 	const [jobSelectedLocations, setJobSelectedLocations] = useState<string[]>([]);
 	const [jobSelectedKeyword, setJobSelectedKeyword] = useState<string | undefined>(undefined);
+	const [jobSelectedOrg, setJobSelectedOrg] = useState<string | undefined>(undefined);
 	const [jobSelectedDepartment, setJobSelectedDepartment] = useState<string | undefined>(undefined);
 	const [jobDateRange, setJobDateRange] = useState<JobDateRange | undefined>(undefined);
 	const [jobSearchQuery, setJobSearchQuery] = useState<string>("");
@@ -75,25 +79,39 @@ export function HomeClient({
 
 	const filteredJobs = useMemo(() => {
 		let filtered = searchFilteredJobs;
+		filtered = filterJobsByOrg(jobSelectedOrg, filtered);
 		filtered = filterJobsByLocation(jobSelectedLocations, filtered);
 		filtered = filterJobsByKeyword(jobSelectedKeyword, filtered);
 		filtered = filterJobsByDepartment(jobSelectedDepartment, filtered);
 		filtered = filterJobsByDateRange(jobDateRange, filtered);
 		return filtered;
-	}, [jobDateRange, jobSelectedDepartment, jobSelectedKeyword, jobSelectedLocations, searchFilteredJobs]);
+	}, [jobDateRange, jobSelectedDepartment, jobSelectedKeyword, jobSelectedLocations, jobSelectedOrg, searchFilteredJobs]);
 
 	const handleClearJobFilters = () => {
 		setJobSelectedLocations([]);
 		setJobSelectedKeyword(undefined);
+		setJobSelectedOrg(undefined);
 		setJobSelectedDepartment(undefined);
 		setJobDateRange(undefined);
 		setJobSearchQuery("");
 	};
 
+	// useCallback is load-bearing, not stylistic: JobUrlFilters lists this in an
+	// effect's dependency array, so a fresh function on every render would
+	// re-run that effect forever.
+	const applyUrlFilters = useCallback((values: JobUrlFilterValues) => {
+		setJobSelectedOrg(values.org);
+		setJobDateRange(values.dateRange);
+	}, []);
+
 	return (
 		<div className="min-h-screen bg-white font-sans text-slate-900">
 			<Header />
 			<main className="flex flex-col items-center w-full">
+				<Suspense fallback={null}>
+					<JobUrlFilters onFilters={applyUrlFilters} />
+				</Suspense>
+
 				<Hero
 					title="Your Alternative Path to H1B Sponsorship"
 					subtitle="Bring your skills to America's top universities, research institutes, and non-profits. Get your H1B sponsored while making a real-world impact."
@@ -112,6 +130,8 @@ export function HomeClient({
 					onLocationsChange={setJobSelectedLocations}
 					selectedKeyword={jobSelectedKeyword}
 					onKeywordChange={setJobSelectedKeyword}
+					selectedOrg={jobSelectedOrg}
+					onOrgChange={setJobSelectedOrg}
 					selectedDepartment={jobSelectedDepartment}
 					onDepartmentChange={setJobSelectedDepartment}
 					selectedDateRange={jobDateRange}

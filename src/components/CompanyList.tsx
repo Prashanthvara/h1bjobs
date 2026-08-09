@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Company } from "@/lib/companyTypes";
+import type { CompanyJobCounts } from "@/lib/companyJobCounts";
+import { CompanyJobCount } from "@/components/CompanyJobCount";
 import { getDepartmentColor, getDepartmentTextColor } from "@/lib/departmentColors";
 import { safeHref } from "@/lib/safeHref";
 import { MapPin, Globe, Linkedin, Instagram, Building2, CheckCircle2 } from "lucide-react";
@@ -21,9 +23,11 @@ const XIcon = ({ className }: { className?: string }) => (
 interface CompanyListProps {
     /** Already filtered and ordered by the caller — this component does not filter. */
     companies: Company[];
+    /** Keyed by company id; a missing entry means no open jobs. */
+    jobCounts: CompanyJobCounts;
 }
 
-export function CompanyList({ companies }: CompanyListProps) {
+export function CompanyList({ companies, jobCounts }: CompanyListProps) {
     return (
         <div className="flex flex-col gap-4">
             {companies.map((company) => (
@@ -108,6 +112,10 @@ export function CompanyList({ companies }: CompanyListProps) {
                                         </div>
                                     </div>
 
+                                    {/* Row 2b: Open jobs. No right rail exists below md, so
+                                        the count sits above the stats row on its own line. */}
+                                    <CompanyJobCount count={jobCounts[company.id]} className="text-[13px]" />
+
                                     {/* Row 3: Stats & Action */}
                                     <div className="flex items-center justify-between mt-1 gap-4">
                                         {/* Stats */}
@@ -150,10 +158,13 @@ export function CompanyList({ companies }: CompanyListProps) {
                                         </div>
                                     </div>
 
-                                    {/* Column 2 wrapper */}
-                                    <div className="md:flex md:flex-col md:gap-2 md:col-start-2 md:row-start-1 md:row-span-3">
-                                        <h4 className="font-bold text-lg text-gray-900 m-0">{company.name}</h4>
-                                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    {/* Column 2: md:contents so the three children below become
+                                        direct grid items and share the grid's rows with the
+                                        right rail. As a flex column they laid out on their own
+                                        and only happened to line up. */}
+                                    <div className="md:contents">
+                                        <h4 className="font-bold text-lg text-gray-900 m-0 md:col-start-2 md:row-start-1 md:self-center">{company.name}</h4>
+                                        <div className="flex items-center gap-2 text-sm text-gray-600 md:col-start-2 md:row-start-2 md:self-center">
                                             <MapPin className="h-4 w-4" />
                                             <span>{company.location}</span>
                                             <span className="text-gray-400 mx-1">|</span>
@@ -244,7 +255,7 @@ export function CompanyList({ companies }: CompanyListProps) {
                                                 )}
                                             </div>
                                         </div>
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-2 md:col-start-2 md:row-start-3 md:self-center">
                                             {company.tags.split(',').map((tag) => (
                                                 <Badge variant="outline" key={tag.trim()} className="text-sm">
                                                     {tag.trim()}
@@ -253,26 +264,37 @@ export function CompanyList({ companies }: CompanyListProps) {
                                         </div>
                                     </div>
 
-                                    {/* H1B Approvals */}
-                                    <div className="flex items-center justify-center md:row-start-1 md:col-start-3">
+                                    {/* Open jobs — row 1, beside the company name */}
+                                    <div className="flex items-center md:row-start-1 md:col-start-3 md:justify-end md:self-center">
+                                        <CompanyJobCount count={jobCounts[company.id]} />
+                                    </div>
+
+                                    {/* H1B Approvals — row 2, beside the location line.
+                                        Trimmed from px-4 py-2 text-sm: three stacked items do
+                                        not fit the card body the rail shares with the 80px
+                                        logo otherwise, and this is a static historical figure
+                                        that does not need to be the largest element here. */}
+                                    <div className="flex items-center md:row-start-2 md:col-start-3 md:justify-end md:self-center">
                                         <div
-                                            className="flex items-center gap-1.5 bg-green-50 text-green-700 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
+                                            className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap"
                                             role="status"
                                             aria-label={`${company.h1b_approvals} H1B visa approvals in ${company.approvals_year}`}
                                         >
-                                            <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                                            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                                             <span>{company.h1b_approvals} H1B Approvals ({company.approvals_year})</span>
                                         </div>
                                     </div>
 
-                                    {/* Apply Button */}
-                                    <div className="flex items-center justify-center md:row-span-2 md:row-start-2 md:col-start-3 md:items-start">
+                                    {/* Apply — row 3, beside the tags. Was row-span-2 with the
+                                        default button; one row and the compact size now, so the
+                                        rail still fits the card body it shares with the logo. */}
+                                    <div className="flex items-center md:row-start-3 md:col-start-3 md:justify-end md:self-center">
                                         {safeHref(company.careers_url) && (
                                             <Link href={safeHref(company.careers_url)} target="_blank" rel="noopener noreferrer">
                                                 <Button
                                                     variant="default"
-                                                    size="default"
-                                                    className="focus:ring-2 focus:ring-blue-500"
+                                                    size="sm"
+                                                    className="h-8 px-4 text-xs font-semibold focus:ring-2 focus:ring-blue-500"
                                                     aria-label={`Apply to jobs at ${company.name}`}
                                                 >
                                                     Apply

@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { getJobLocationOptions, getDateRangeOptions, filterJobsByDateRange } from "./jobFilterUtils";
+import {
+    getJobLocationOptions,
+    getDateRangeOptions,
+    filterJobsByDateRange,
+    getOrgOptions,
+    filterJobsByOrg,
+} from "./jobFilterUtils";
 import type { Job } from "./jobTypes";
 
 const job = (locations: string[]) => ({ location: locations }) as Job;
@@ -82,5 +88,66 @@ describe("getDateRangeOptions", () => {
             const label = getDateRangeOptions(jobs).find((o) => o.value === value)!.label;
             expect(label).toContain(`(${expected})`);
         }
+    });
+});
+
+describe("getOrgOptions", () => {
+    const job = (org: string | null) => ({ org }) as Job;
+
+    it("returns one option per employer, with its job count", () => {
+        const options = getOrgOptions([job("Stanford University"), job("Stanford University")]);
+        expect(options).toEqual([{ value: "Stanford University", label: "Stanford University", count: 2 }]);
+    });
+
+    it("merges spelling variants into a single option", () => {
+        const options = getOrgOptions([job("Stanford University"), job("stanford university")]);
+        expect(options).toHaveLength(1);
+        expect(options[0].count).toBe(2);
+    });
+
+    it("sorts by count descending, then alphabetically", () => {
+        const options = getOrgOptions([
+            job("Yale University"),
+            job("Stanford University"),
+            job("Stanford University"),
+            job("Amherst College"),
+        ]);
+        expect(options.map((o) => o.label)).toEqual([
+            "Stanford University",
+            "Amherst College",
+            "Yale University",
+        ]);
+    });
+
+    it("skips jobs with no employer", () => {
+        expect(getOrgOptions([job(null), job("")])).toEqual([]);
+    });
+});
+
+describe("filterJobsByOrg", () => {
+    const job = (org: string | null) => ({ org }) as Job;
+
+    it("returns every job when no employer is selected", () => {
+        const jobs = [job("Stanford University"), job("Yale University")];
+        expect(filterJobsByOrg(undefined, jobs)).toHaveLength(2);
+    });
+
+    it("keeps only the selected employer", () => {
+        const jobs = [job("Stanford University"), job("Yale University")];
+        expect(filterJobsByOrg("Stanford University", jobs)).toEqual([jobs[0]]);
+    });
+
+    it("matches spelling variants, so the count behind a link is the count on it", () => {
+        const jobs = [job("stanford university"), job("The Stanford University"), job("Yale University")];
+        expect(filterJobsByOrg("Stanford University", jobs)).toHaveLength(2);
+    });
+
+    it("returns nothing for an employer that is not in the feed", () => {
+        expect(filterJobsByOrg("Nonexistent College", [job("Yale University")])).toEqual([]);
+    });
+
+    it("treats a blank selection as no selection", () => {
+        const jobs = [job("Stanford University")];
+        expect(filterJobsByOrg("   ", jobs)).toHaveLength(1);
     });
 });

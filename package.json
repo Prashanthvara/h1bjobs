@@ -8,6 +8,7 @@
 		"build:cf": "opennextjs-cloudflare build",
 		"lint": "next lint",
 		"check:sponsored": "node scripts/check-sponsored.mjs",
+		"check:orgs": "node scripts/check-org-match.mjs",
 		"revalidate": "node scripts/revalidate.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",

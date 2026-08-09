@@ -19,10 +19,12 @@ import {
     filterJobsByDepartment,
     filterJobsByKeyword,
     filterJobsByLocation,
+    filterJobsByOrg,
     getDateRangeOptions,
     getDepartmentOptions,
     getJobLocationOptions,
     getKeywordOptions,
+    getOrgOptions,
 } from "@/lib/jobFilterUtils";
 import { Company } from "@/lib/companyTypes";
 import {
@@ -42,6 +44,8 @@ interface JobsFilterBarProps {
     onLocationsChange: (values: string[]) => void;
     selectedKeyword?: string;
     onKeywordChange: (value: string | undefined) => void;
+    selectedOrg?: string;
+    onOrgChange: (value: string | undefined) => void;
     selectedDepartment?: string;
     onDepartmentChange: (value: string | undefined) => void;
     selectedDateRange?: JobDateRange;
@@ -115,7 +119,7 @@ export function FilterBar(props: FilterBarProps) {
 
     const hasActiveFilters = (() => {
         if (props.mode === "jobs") {
-            return !!(props.searchQuery || props.selectedLocations.length > 0 || props.selectedKeyword || props.selectedDepartment || props.selectedDateRange);
+            return !!(props.searchQuery || props.selectedLocations.length > 0 || props.selectedKeyword || props.selectedDepartment || props.selectedDateRange || props.selectedOrg);
         }
         return !!(props.searchQuery || props.selectedLocation || props.selectedRole || props.selectedDepartment);
     })();
@@ -126,6 +130,7 @@ export function FilterBar(props: FilterBarProps) {
             if (props.searchQuery) count++;
             if (props.selectedLocations.length > 0) count++;
             if (props.selectedKeyword) count++;
+            if (props.selectedOrg) count++;
             if (props.selectedDepartment) count++;
             if (props.selectedDateRange) count++;
             return count;
@@ -171,6 +176,8 @@ function JobsFilterBarInner({
     onLocationsChange,
     selectedKeyword,
     onKeywordChange,
+    selectedOrg,
+    onOrgChange,
     selectedDepartment,
     onDepartmentChange,
     selectedDateRange,
@@ -193,38 +200,52 @@ function JobsFilterBarInner({
     // Dependent dropdown basis calculations
     const locationBasis = useMemo(() => {
         let filtered = jobs;
+        filtered = filterJobsByOrg(selectedOrg, filtered);
         filtered = filterJobsByKeyword(selectedKeyword, filtered);
         filtered = filterJobsByDepartment(selectedDepartment, filtered);
         filtered = filterJobsByDateRange(selectedDateRange, filtered);
         return filtered;
-    }, [jobs, selectedKeyword, selectedDepartment, selectedDateRange]);
+    }, [jobs, selectedOrg, selectedKeyword, selectedDepartment, selectedDateRange]);
 
     const keywordBasis = useMemo(() => {
         let filtered = jobs;
+        filtered = filterJobsByOrg(selectedOrg, filtered);
         filtered = filterJobsByLocation(selectedLocations, filtered);
         filtered = filterJobsByDepartment(selectedDepartment, filtered);
         filtered = filterJobsByDateRange(selectedDateRange, filtered);
         return filtered;
-    }, [jobs, selectedLocations, selectedDepartment, selectedDateRange]);
+    }, [jobs, selectedOrg, selectedLocations, selectedDepartment, selectedDateRange]);
+
+    const orgBasis = useMemo(() => {
+        let filtered = jobs;
+        filtered = filterJobsByLocation(selectedLocations, filtered);
+        filtered = filterJobsByKeyword(selectedKeyword, filtered);
+        filtered = filterJobsByDepartment(selectedDepartment, filtered);
+        filtered = filterJobsByDateRange(selectedDateRange, filtered);
+        return filtered;
+    }, [jobs, selectedLocations, selectedKeyword, selectedDepartment, selectedDateRange]);
 
     const departmentBasis = useMemo(() => {
         let filtered = jobs;
+        filtered = filterJobsByOrg(selectedOrg, filtered);
         filtered = filterJobsByLocation(selectedLocations, filtered);
         filtered = filterJobsByKeyword(selectedKeyword, filtered);
         filtered = filterJobsByDateRange(selectedDateRange, filtered);
         return filtered;
-    }, [jobs, selectedLocations, selectedKeyword, selectedDateRange]);
+    }, [jobs, selectedOrg, selectedLocations, selectedKeyword, selectedDateRange]);
 
     const dateBasis = useMemo(() => {
         let filtered = jobs;
+        filtered = filterJobsByOrg(selectedOrg, filtered);
         filtered = filterJobsByLocation(selectedLocations, filtered);
         filtered = filterJobsByKeyword(selectedKeyword, filtered);
         filtered = filterJobsByDepartment(selectedDepartment, filtered);
         return filtered;
-    }, [jobs, selectedLocations, selectedKeyword, selectedDepartment]);
+    }, [jobs, selectedOrg, selectedLocations, selectedKeyword, selectedDepartment]);
 
     const locationOptions = useMemo(() => getJobLocationOptions(locationBasis), [locationBasis]);
     const keywordOptions = useMemo(() => getKeywordOptions(keywordBasis), [keywordBasis]);
+    const orgOptions = useMemo(() => getOrgOptions(orgBasis), [orgBasis]);
     const departmentOptions = useMemo(() => getDepartmentOptions(departmentBasis), [departmentBasis]);
 
     const addedToday = useMemo(() => countJobsAddedToday(jobs), [jobs]);
@@ -237,9 +258,19 @@ function JobsFilterBarInner({
             {/* Filter bar */}
             <div className="bg-white sticky top-[57px] z-40">
                 <div className="max-w-7xl mx-auto px-7 md:px-[150px] py-3">
-                    {/* Desktop: single row */}
-                    <div className="hidden md:flex items-center gap-2">
-                        <div className="relative flex-1 min-w-[200px]">
+                    {/* Desktop: search on its own line, the five filters below.
+                        Adding Employer made six controls, and they do not fit
+                        one line at any desktop width — the container is capped
+                        at max-w-7xl less 300px of padding (~980px) while the
+                        controls need ~1050px. The single-row layout absorbed
+                        that by shrinking each combobox, which at 1024px
+                        squeezed "Skills" to 88px and truncated employer names
+                        into uselessness. Wrapping deliberately keeps every
+                        control at a readable width; letting the row wrap on
+                        its own put search and four filters on line one and
+                        stranded the date control alone on line two. */}
+                    <div className="hidden md:flex md:flex-wrap items-center gap-2">
+                        <div className="relative w-full">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                                 className="pl-9 pr-8 h-10 border-gray-200 text-sm font-medium"
@@ -262,6 +293,15 @@ function JobsFilterBarInner({
                             placeholder="Location"
                             searchPlaceholder="Search locations..."
                             emptyText="No location found."
+                        />
+                        <Combobox
+                            className="w-[180px] h-10 text-sm font-medium"
+                            options={orgOptions}
+                            value={selectedOrg}
+                            onValueChange={(v) => onOrgChange(v || undefined)}
+                            placeholder="Employer"
+                            searchPlaceholder="Search employers..."
+                            emptyText="No employer found."
                         />
                         <Combobox
                             className="w-[160px] h-10 text-sm font-medium"
@@ -340,6 +380,15 @@ function JobsFilterBarInner({
                                 placeholder="Location"
                                 searchPlaceholder="Search locations..."
                                 emptyText="No location found."
+                            />
+                            <Combobox
+                                className="w-full h-10 text-sm font-medium"
+                                options={orgOptions}
+                                value={selectedOrg}
+                                onValueChange={(v) => onOrgChange(v || undefined)}
+                                placeholder="Employer"
+                                searchPlaceholder="Search employers..."
+                                emptyText="No employer found."
                             />
                             <Combobox
                                 className="w-full h-10 text-sm font-medium"

@@ -1,4 +1,5 @@
 import { Job, JobDateRange } from "./jobTypes";
+import { normalizeOrgName, pickOrgRepresentatives } from "./orgName";
 
 const stateNameMap: Record<string, string> = {
     "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
@@ -228,7 +229,17 @@ export function filterJobsByDepartment(selectedDepartment: string | undefined, j
     );
 }
 
-export function filterJobsByDateRange(selectedRange: JobDateRange | undefined, jobs: Job[]) {
+/**
+ * Generic in the row type, not `Job[]`: companyJobCounts.ts counts a
+ * two-column projection of the job table and must use THIS function rather
+ * than its own copy of the cutoff arithmetic, or the count on a company card
+ * would be free to drift from the "Last 30 days" option that the card's link
+ * applies. Callers passing full `Job` objects are unaffected.
+ */
+export function filterJobsByDateRange<T extends Pick<Job, "job_posting_date">>(
+    selectedRange: JobDateRange | undefined,
+    jobs: T[]
+): T[] {
     if (!selectedRange) return jobs;
 
     const now = new Date();
@@ -277,4 +288,51 @@ export function getDateRangeOptions(
         value,
         label: `${DATE_RANGE_LABELS[value]} (${filterJobsByDateRange(value, jobs).length.toLocaleString()})`,
     }));
+}
+
+/**
+ * Employer options for the jobs filter bar.
+ *
+ * Grouped by normalized name rather than raw string, so an employer the feed
+ * spells three ways is one row in the dropdown with one combined count — and
+ * so the count here matches what `filterJobsByOrg` will actually return.
+ *
+ * Uses the `count` field rather than baking the number into `label`, unlike
+ * the older keyword and department options: the Combobox renders `count` in
+ * the dropdown only, keeping the collapsed trigger readable.
+ */
+export function getOrgOptions(jobs: Job[]): Array<{ value: string; label: string; count: number }> {
+    const representatives = pickOrgRepresentatives(jobs.map((job) => job.org));
+
+    const counts = new Map<string, number>();
+    jobs.forEach((job) => {
+        const key = normalizeOrgName(job.org);
+        if (!key) return;
+        counts.set(key, (counts.get(key) || 0) + 1);
+    });
+
+    return [...counts.entries()]
+        .map(([key, count]) => {
+            const label = representatives.get(key) ?? key;
+            return { value: label, label, count };
+        })
+        .sort((a, b) => {
+            const countDiff = b.count - a.count;
+            if (countDiff !== 0) return countDiff;
+            return a.label.localeCompare(b.label);
+        });
+}
+
+/**
+ * Narrows the feed to one employer.
+ *
+ * Compares normalized names, not raw strings. A company card links the
+ * spelling its jobs most often use, but the feed holds others; an exact-match
+ * filter would drop those and show fewer jobs than the card advertised.
+ */
+export function filterJobsByOrg(selectedOrg: string | undefined, jobs: Job[]): Job[] {
+    const key = normalizeOrgName(selectedOrg);
+    if (!key) return jobs;
+
+    return jobs.filter((job) => normalizeOrgName(job.org) === key);
 }
