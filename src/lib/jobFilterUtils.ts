@@ -228,7 +228,17 @@ export function filterJobsByDepartment(selectedDepartment: string | undefined, j
     );
 }
 
-export function filterJobsByDateRange(selectedRange: JobDateRange | undefined, jobs: Job[]) {
+/**
+ * Generic in the row type, not `Job[]`: companyJobCounts.ts counts a
+ * two-column projection of the job table and must use THIS function rather
+ * than its own copy of the cutoff arithmetic, or the count on a company card
+ * would be free to drift from the "Last 30 days" option that the card's link
+ * applies. Callers passing full `Job` objects are unaffected.
+ */
+export function filterJobsByDateRange<T extends Pick<Job, "job_posting_date">>(
+    selectedRange: JobDateRange | undefined,
+    jobs: T[]
+): T[] {
     if (!selectedRange) return jobs;
 
     const now = new Date();
