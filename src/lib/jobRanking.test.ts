@@ -227,3 +227,69 @@ describe("rankJobs affinity", () => {
 		expect(ids(rankJobs(jobs))).toEqual(["clin-1", "res-1"]);
 	});
 });
+
+/**
+ * Shaped like the live feed measured on 2026-08-17: 18 employers, ~9
+ * departments, spread over 30 days, with employers contributing unequally.
+ */
+function syntheticFeed(size: number): Job[] {
+	const employers = Array.from({ length: 18 }, (_, i) => `Employer ${i}`);
+	const departments = [
+		"Clinical Care", "Research", "Clinical Operations", "Education",
+		"Information Technology", "Student Services", "Finance", "Facilities", "Other",
+	];
+	const jobs: Job[] = [];
+	for (let i = 0; i < size; i += 1) {
+		const day = 17 - (i % 30);
+		const date = day > 0
+			? `2026-08-${String(day).padStart(2, "0")}`
+			: `2026-07-${String(31 + day).padStart(2, "0")}`;
+		jobs.push(job(
+			`synthetic-${String(i).padStart(5, "0")}`,
+			employers[i % employers.length],
+			departments[(i * 7) % departments.length],
+			date
+		));
+	}
+	return jobs;
+}
+
+describe("rankJobs performance budget", () => {
+	it("ranks 1000 jobs in well under the interaction budget", () => {
+		// The reference implementation measures 1.77ms here. The budget is set at
+		// 25ms: loose enough never to flake on a loaded CI box, tight enough to
+		// catch a regression to the naive O(n^2) selection, which costs roughly
+		// 360ms at this size.
+		const jobs = syntheticFeed(1000);
+
+		for (let warmup = 0; warmup < 3; warmup += 1) rankJobs(jobs);
+
+		const started = performance.now();
+		rankJobs(jobs);
+		const elapsed = performance.now() - started;
+
+		expect(elapsed).toBeLessThan(25);
+	});
+
+	it("scales sub-quadratically from 1000 to 5000 jobs", () => {
+		// Five times the jobs must not cost twenty-five times the work. A
+		// quadratic implementation fails this even on a fast machine.
+		const small = syntheticFeed(1000);
+		const large = syntheticFeed(5000);
+
+		for (let warmup = 0; warmup < 3; warmup += 1) {
+			rankJobs(small);
+			rankJobs(large);
+		}
+
+		const smallStart = performance.now();
+		rankJobs(small);
+		const smallElapsed = Math.max(performance.now() - smallStart, 0.01);
+
+		const largeStart = performance.now();
+		rankJobs(large);
+		const largeElapsed = performance.now() - largeStart;
+
+		expect(largeElapsed / smallElapsed).toBeLessThan(15);
+	});
+});
