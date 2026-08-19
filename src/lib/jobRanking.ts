@@ -240,3 +240,66 @@ export function rankJobs(jobs: Job[], options: RankJobsOptions = {}): Job[] {
 
 	return ranked;
 }
+
+/**
+ * The jobs feed's filter selections, as HomeClient holds them.
+ *
+ * Declared here rather than in HomeClient so the ranking decisions below stay
+ * pure and testable — this repo has no component test setup, so any logic worth
+ * asserting has to live in src/lib.
+ */
+export interface JobFilterState {
+	org?: string;
+	keyword?: string;
+	department?: string;
+	dateRange?: string;
+	locations: string[];
+	search: string;
+}
+
+/**
+ * Whether the visitor has narrowed the feed at all.
+ *
+ * When this is false and there is no affinity profile, the list the client
+ * holds is still exactly what the server ranked, so the client can skip
+ * ranking entirely. That is what keeps a first-time visitor's load free.
+ */
+export function hasActiveJobFilters(state: JobFilterState): boolean {
+	return Boolean(
+		state.org ||
+		state.keyword ||
+		state.department ||
+		state.dateRange ||
+		state.locations.length > 0 ||
+		state.search
+	);
+}
+
+/**
+ * Ranking weights appropriate to the current filters.
+ *
+ * A penalty exists to spread results across a facet. Once the visitor pins that
+ * facet the spreading is pointless — every result already shares the value —
+ * and the penalty would just reorder their results against posting date for no
+ * reason. So a pinned facet zeroes its own penalty and leaves the other alone.
+ *
+ * A date range deliberately zeroes nothing. It pins neither employer nor
+ * department, so spreading across both still makes sense. Note what a narrow
+ * range does to the balance though: "Last 24 hours" collapses every age to
+ * roughly zero, which leaves the penalties as the only term with any say. That
+ * is the intended result — within a single day there is no recency to respect,
+ * so pure diversity is the right ordering.
+ *
+ * Affinity is likewise left alone, and is close to inert on a pinned facet by
+ * construction rather than by a special case: if every result is a Research
+ * job, that facet contributes near-identical weight to every job and cannot
+ * change their relative order. The other three facets still discriminate
+ * inside the filtered set, which is what a visitor filtering to Research and
+ * having a Yale preference should get.
+ */
+export function resolveRankingOptions(state: JobFilterState): RankJobsOptions {
+	return {
+		orgPenalty: state.org ? 0 : DEFAULT_RANKING_WEIGHTS.orgPenalty,
+		deptPenalty: state.department ? 0 : DEFAULT_RANKING_WEIGHTS.deptPenalty,
+	};
+}

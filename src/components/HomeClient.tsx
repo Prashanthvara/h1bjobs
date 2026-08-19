@@ -21,6 +21,12 @@ import {
 	normalizeJobKeywords,
 	normalizeJobLocations,
 } from "@/lib/jobFilterUtils";
+import {
+	hasActiveJobFilters,
+	rankJobs,
+	resolveRankingOptions,
+	type JobFilterState,
+} from "@/lib/jobRanking";
 
 interface HomeClientProps {
 	initialJobs: Job[];
@@ -87,6 +93,35 @@ export function HomeClient({
 		return filtered;
 	}, [jobDateRange, jobSelectedDepartment, jobSelectedKeyword, jobSelectedLocations, jobSelectedOrg, searchFilteredJobs]);
 
+	const filterState: JobFilterState = useMemo(
+		() => ({
+			org: jobSelectedOrg,
+			keyword: jobSelectedKeyword,
+			department: jobSelectedDepartment,
+			dateRange: jobDateRange,
+			locations: jobSelectedLocations,
+			search: jobSearchQuery,
+		}),
+		[
+			jobDateRange,
+			jobSearchQuery,
+			jobSelectedDepartment,
+			jobSelectedKeyword,
+			jobSelectedLocations,
+			jobSelectedOrg,
+		]
+	);
+
+	// Skipping this when nothing is filtered is the whole performance story:
+	// `initialJobs` arrived already ranked from the server, and every filter
+	// returns its input unchanged when unset, so `filteredJobs` is still that
+	// same ranked array. Ranking again would burn ~2ms on hydration to produce
+	// a result identical to what is already on screen.
+	const rankedJobs = useMemo(() => {
+		if (!hasActiveJobFilters(filterState)) return filteredJobs;
+		return rankJobs(filteredJobs, resolveRankingOptions(filterState));
+	}, [filteredJobs, filterState]);
+
 	const handleClearJobFilters = () => {
 		setJobSelectedLocations([]);
 		setJobSelectedKeyword(undefined);
@@ -143,7 +178,7 @@ export function HomeClient({
 
 				<div id="jobs" className="w-full max-w-7xl mx-auto px-7 md:px-[150px] pb-20 scroll-mt-4">
 					<div className="border-b border-gray-200 mb-4"></div>
-					<JobsList jobs={filteredJobs} error={jobsError} companies={companies} />
+					<JobsList jobs={rankedJobs} error={jobsError} companies={companies} />
 				</div>
 			</main>
 			<Footer />

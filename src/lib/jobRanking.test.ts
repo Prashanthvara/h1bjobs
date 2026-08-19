@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { rankJobs, departmentRankKey, DEFAULT_RANKING_WEIGHTS } from "./jobRanking";
+import {
+	rankJobs,
+	departmentRankKey,
+	DEFAULT_RANKING_WEIGHTS,
+	hasActiveJobFilters,
+	resolveRankingOptions,
+} from "./jobRanking";
 import type { Job } from "./jobTypes";
 
 function job(
@@ -291,5 +297,77 @@ describe("rankJobs performance budget", () => {
 		const largeElapsed = performance.now() - largeStart;
 
 		expect(largeElapsed / smallElapsed).toBeLessThan(15);
+	});
+});
+
+const noFilters = {
+	org: undefined,
+	keyword: undefined,
+	department: undefined,
+	dateRange: undefined,
+	locations: [] as string[],
+	search: "",
+};
+
+describe("hasActiveJobFilters", () => {
+	it("is false when nothing is selected", () => {
+		expect(hasActiveJobFilters(noFilters)).toBe(false);
+	});
+
+	it("is true for each facet independently", () => {
+		expect(hasActiveJobFilters({ ...noFilters, org: "Yale University" })).toBe(true);
+		expect(hasActiveJobFilters({ ...noFilters, keyword: "Python" })).toBe(true);
+		expect(hasActiveJobFilters({ ...noFilters, department: "Research" })).toBe(true);
+		expect(hasActiveJobFilters({ ...noFilters, dateRange: "7d" })).toBe(true);
+		expect(hasActiveJobFilters({ ...noFilters, locations: ["state:MI"] })).toBe(true);
+		expect(hasActiveJobFilters({ ...noFilters, search: "postdoc" })).toBe(true);
+	});
+});
+
+describe("resolveRankingOptions", () => {
+	it("uses the default weights when no facet is pinned", () => {
+		const options = resolveRankingOptions(noFilters);
+		expect(options.orgPenalty).toBe(DEFAULT_RANKING_WEIGHTS.orgPenalty);
+		expect(options.deptPenalty).toBe(DEFAULT_RANKING_WEIGHTS.deptPenalty);
+	});
+
+	it("switches off the employer penalty when an employer is pinned", () => {
+		// Every result is that employer, so spreading across employers is
+		// meaningless and would only scramble the visitor's date order.
+		const options = resolveRankingOptions({ ...noFilters, org: "Yale University" });
+		expect(options.orgPenalty).toBe(0);
+		expect(options.deptPenalty).toBe(DEFAULT_RANKING_WEIGHTS.deptPenalty);
+	});
+
+	it("switches off the department penalty when a department is pinned", () => {
+		const options = resolveRankingOptions({ ...noFilters, department: "Research" });
+		expect(options.deptPenalty).toBe(0);
+		expect(options.orgPenalty).toBe(DEFAULT_RANKING_WEIGHTS.orgPenalty);
+	});
+
+	it("keeps both penalties for a text search, which pins no facet", () => {
+		const options = resolveRankingOptions({ ...noFilters, search: "postdoc" });
+		expect(options.orgPenalty).toBe(DEFAULT_RANKING_WEIGHTS.orgPenalty);
+		expect(options.deptPenalty).toBe(DEFAULT_RANKING_WEIGHTS.deptPenalty);
+	});
+
+	it("keeps both penalties for a date range, which pins no facet either", () => {
+		const options = resolveRankingOptions({ ...noFilters, dateRange: "7d" });
+		expect(options.orgPenalty).toBe(DEFAULT_RANKING_WEIGHTS.orgPenalty);
+		expect(options.deptPenalty).toBe(DEFAULT_RANKING_WEIGHTS.deptPenalty);
+	});
+
+	it("produces options that leave a single-employer feed in date order", () => {
+		const jobs = [
+			job("a-1", "Employer A", "Research", "2026-08-15"),
+			job("a-3", "Employer A", "Research", "2026-08-17"),
+			job("a-2", "Employer A", "Clinical Care", "2026-08-17"),
+		];
+		const options = resolveRankingOptions({
+			...noFilters,
+			org: "Employer A",
+			department: "Research",
+		});
+		expect(ids(rankJobs(jobs, options))).toEqual(["a-3", "a-2", "a-1"]);
 	});
 });
