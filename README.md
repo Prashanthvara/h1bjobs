@@ -11,6 +11,19 @@ A job board for international professionals looking for H-1B visa sponsorship wi
 - **Visa eligibility signals** on each listing so you can quickly tell which roles are likely to sponsor.
 - **Full-text search** across job titles, organizations, locations, and keywords.
 
+## Feed ordering
+
+The jobs feed is not strictly chronological. Listings are ordered so the top of
+each page spreads across employers and departments rather than showing one
+employer's most recent scrape — a job posted today still outranks an older one,
+but an employer's eleventh listing gives way to another employer's first.
+
+If you use the filters, the site remembers which employers, departments,
+locations, and keywords you picked, and nudges matching jobs higher. That
+preference is stored only in your own browser under `h1b:affinity:v1` in local
+storage, is never sent to the server, and fades on a two-week half-life.
+Searches you type are not recorded. Clearing your browser's site data resets it.
+
 ## Who it's for
 
 Researchers, engineers, physicians, academics, and other skilled professionals on (or seeking) H-1B status who want to find employers that can sponsor without entering the lottery.

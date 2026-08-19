@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getThirtyDayCutoff, VISA_JOB_ORG_COLUMNS } from "./jobData";
+import { getThirtyDayCutoff, VISA_JOB_COLUMNS, VISA_JOB_ORG_COLUMNS } from "./jobData";
 import { filterJobsByDateRange } from "./jobFilterUtils";
 import type { Job } from "./jobTypes";
 
@@ -64,5 +64,37 @@ describe("VISA_JOB_ORG_COLUMNS", () => {
 
 	it("does not use a wildcard", () => {
 		expect(VISA_JOB_ORG_COLUMNS).not.toContain("*");
+	});
+});
+
+describe("VISA_JOB_COLUMNS", () => {
+	it("selects exactly the nine fields the home feed renders", () => {
+		// This projection is delivered to every visitor inside the RSC payload.
+		// Adding a column here costs bandwidth on every home page load; removing
+		// one blanks a field on the job card. Both directions fail this test.
+		expect([...VISA_JOB_COLUMNS].sort()).toEqual([
+			"department",
+			"is_visa",
+			"job_id",
+			"job_posting_date",
+			"job_title",
+			"keywords",
+			"location",
+			"org",
+			"url",
+		]);
+	});
+
+	it("does not use a wildcard", () => {
+		expect(VISA_JOB_COLUMNS).not.toContain("*");
+	});
+
+	it("includes the three fields ranking depends on", () => {
+		// rankJobs groups by employer and department and scores by posting date.
+		// If any of these leaves the projection, ranking silently degrades to
+		// one undifferentiated group rather than failing loudly.
+		expect(VISA_JOB_COLUMNS).toContain("org");
+		expect(VISA_JOB_COLUMNS).toContain("department");
+		expect(VISA_JOB_COLUMNS).toContain("job_posting_date");
 	});
 });

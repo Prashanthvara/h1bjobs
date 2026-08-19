@@ -70,6 +70,28 @@ export async function fetchVisaJobCount(): Promise<{ count: number | null; error
 	return { count: count ?? null, error: null };
 }
 
+/**
+ * The exact columns the home feed selects.
+ *
+ * Guarded the same way as VISA_JOB_ORG_COLUMNS: `satisfies` rejects a
+ * misspelled column at compile time, jobData.test.ts rejects a changed list at
+ * run time. Both matter more here than anywhere else in the codebase — these
+ * rows are serialized into the RSC payload that every home page visitor
+ * downloads, currently ~406 KB for 1000 jobs. A column added here is paid for
+ * on every load.
+ */
+export const VISA_JOB_COLUMNS = [
+	"job_id",
+	"org",
+	"job_title",
+	"location",
+	"job_posting_date",
+	"url",
+	"is_visa",
+	"keywords",
+	"department",
+] as const satisfies readonly (keyof Job)[];
+
 export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | null }> {
 	const supabase = getClient();
 	if (!supabase) {
@@ -86,7 +108,7 @@ export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | nu
 	// card's "47 open jobs" match the 47 rows behind its link.
 	const { data, error } = await supabase
 		.from("job")
-		.select("job_id, org, job_title, location, job_posting_date, url, is_visa, keywords, department")
+		.select(VISA_JOB_COLUMNS.join(", "))
 		.eq("is_visa", true)
 		.order("job_posting_date", { ascending: false })
 		.order("job_id", { ascending: false });
@@ -95,7 +117,12 @@ export async function fetchVisaJobs(): Promise<{ jobs: Job[]; error: string | nu
 		return { jobs: [], error: error.message };
 	}
 
-	return { jobs: (data ?? []) as Job[], error: null };
+	// Cast via unknown, matching fetchVisaJobOrgDates and fetchCompanyRows:
+	// passing a runtime-built column string means the Supabase client cannot
+	// infer the row shape and widens it to GenericStringError[]. VISA_JOB_COLUMNS
+	// is kept in sync with Job by its satisfies clause and by jobData.test.ts, so
+	// the shape is guaranteed at the source.
+	return { jobs: (data ?? []) as unknown as Job[], error: null };
 }
 
 /**
