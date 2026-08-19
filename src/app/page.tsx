@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { HomeClient } from "@/components/HomeClient";
 import { fetchVisaJobs, fetchVisaJobCount } from "@/lib/jobData";
 import { fetchCompanySummaries } from "@/lib/companyData";
+import { rankJobs } from "@/lib/jobRanking";
 
 // One hour, not a day: this page is a snapshot of Supabase, and the scraper
 // that writes new jobs also calls POST /api/revalidate (see README). This
@@ -47,9 +48,19 @@ export default async function HomePage() {
 		console.error("company summary query failed:", companiesError);
 	}
 
+	// Ranked here rather than in HomeClient so the cost lands on ISR
+	// regeneration - once an hour, off the request path - instead of on every
+	// visitor's hydration. The HTML Cloudflare serves is already ordered, so a
+	// first-time visitor with no filters does no ranking work at all.
+	//
+	// rankJobs is order-independent and idempotent, so when the client does
+	// re-rank (a filter is active, or a stored affinity profile exists) it
+	// cannot disagree with this order and reshuffle the page.
+	const rankedJobs = rankJobs(jobs);
+
 	return (
 		<HomeClient
-			initialJobs={jobs}
+			initialJobs={rankedJobs}
 			visaJobCount={visaJobCount}
 			initialError={error}
 			companies={companies}
