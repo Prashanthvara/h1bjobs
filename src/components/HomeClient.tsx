@@ -27,6 +27,8 @@ import {
 	resolveRankingOptions,
 	type JobFilterState,
 } from "@/lib/jobRanking";
+import { recordAffinitySignal } from "@/lib/jobAffinity";
+import { useAffinityProfile } from "@/components/useAffinityProfile";
 
 interface HomeClientProps {
 	initialJobs: Job[];
@@ -61,6 +63,8 @@ export function HomeClient({
 	const [jobSelectedDepartment, setJobSelectedDepartment] = useState<string | undefined>(undefined);
 	const [jobDateRange, setJobDateRange] = useState<JobDateRange | undefined>(undefined);
 	const [jobSearchQuery, setJobSearchQuery] = useState<string>("");
+
+	const affinity = useAffinityProfile();
 
 	const searchFilteredJobs = useMemo(() => {
 		if (!jobSearchQuery) return jobs;
@@ -117,10 +121,15 @@ export function HomeClient({
 	// returns its input unchanged when unset, so `filteredJobs` is still that
 	// same ranked array. Ranking again would burn ~2ms on hydration to produce
 	// a result identical to what is already on screen.
+	// Two ways to end up ranking on the client: the visitor narrowed the feed,
+	// so the server's order no longer applies to what is on screen; or they have
+	// a stored profile, which the server could not know about. With neither -
+	// the common case, a first-time visitor landing from search - this returns
+	// the server-ranked array untouched and costs nothing.
 	const rankedJobs = useMemo(() => {
-		if (!hasActiveJobFilters(filterState)) return filteredJobs;
-		return rankJobs(filteredJobs, resolveRankingOptions(filterState));
-	}, [filteredJobs, filterState]);
+		if (!affinity && !hasActiveJobFilters(filterState)) return filteredJobs;
+		return rankJobs(filteredJobs, { ...resolveRankingOptions(filterState), affinity });
+	}, [affinity, filteredJobs, filterState]);
 
 	const handleClearJobFilters = () => {
 		setJobSelectedLocations([]);
@@ -131,9 +140,42 @@ export function HomeClient({
 		setJobSearchQuery("");
 	};
 
+	// Only explicit facet choices are recorded. Free-text search is deliberately
+	// excluded - it is noisy and may contain personal text that does not belong
+	// in storage. Clearing a filter records nothing either; it expresses the end
+	// of an interest, not a new one.
+	const handleOrgChange = useCallback((value: string | undefined) => {
+		setJobSelectedOrg(value);
+		if (value) recordAffinitySignal("orgs", value);
+	}, []);
+
+	const handleKeywordChange = useCallback((value: string | undefined) => {
+		setJobSelectedKeyword(value);
+		if (value) recordAffinitySignal("keywords", value);
+	}, []);
+
+	const handleDepartmentChange = useCallback((value: string | undefined) => {
+		setJobSelectedDepartment(value);
+		if (value) recordAffinitySignal("departments", value);
+	}, []);
+
+	const handleLocationsChange = useCallback((values: string[]) => {
+		setJobSelectedLocations(values);
+		values.forEach((value) => {
+			// Values arrive prefixed, e.g. "city:Ann Arbor, MI" or "state:MI".
+			const separator = value.indexOf(":");
+			const label = separator === -1 ? value : value.slice(separator + 1);
+			if (label) recordAffinitySignal("locations", label);
+		});
+	}, []);
+
 	// useCallback is load-bearing, not stylistic: JobUrlFilters lists this in an
 	// effect's dependency array, so a fresh function on every render would
 	// re-run that effect forever.
+	// Calls setJobSelectedOrg directly rather than handleOrgChange, deliberately:
+	// an employer arriving from a ?org= link expresses the card that was clicked,
+	// not a standing preference, and recording it would let one outbound click
+	// permanently skew the feed.
 	const applyUrlFilters = useCallback((values: JobUrlFilterValues) => {
 		setJobSelectedOrg(values.org);
 		setJobDateRange(values.dateRange);
@@ -162,13 +204,13 @@ export function HomeClient({
 					mode="jobs"
 					jobs={searchFilteredJobs}
 					selectedLocations={jobSelectedLocations}
-					onLocationsChange={setJobSelectedLocations}
+					onLocationsChange={handleLocationsChange}
 					selectedKeyword={jobSelectedKeyword}
-					onKeywordChange={setJobSelectedKeyword}
+					onKeywordChange={handleKeywordChange}
 					selectedOrg={jobSelectedOrg}
-					onOrgChange={setJobSelectedOrg}
+					onOrgChange={handleOrgChange}
 					selectedDepartment={jobSelectedDepartment}
-					onDepartmentChange={setJobSelectedDepartment}
+					onDepartmentChange={handleDepartmentChange}
 					selectedDateRange={jobDateRange}
 					onDateRangeChange={setJobDateRange}
 					searchQuery={jobSearchQuery}
