@@ -370,19 +370,19 @@ export function CompanyList({ companies, jobCounts }: CompanyListProps) {
 
                                         <div className="mt-6 text-center text-sm text-gray-500">
                                             Interested? Check {safeHref(company.careers_url) ? (
-                                                <a href={safeHref(company.careers_url)} className="text-blue-600 hover:underline">{company.name} Careers</a>
+                                                <a href={safeHref(company.careers_url)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{company.name} Careers</a>
                                             ) : (
                                                 <span>{company.name} Careers</span>
                                             )} page for open positions.
                                             <span className="text-gray-400 mx-1">|</span>
                                             <span className="font-medium">Sources: </span>
                                             {safeHref(company.source) ? (
-                                                <a href={safeHref(company.source)} className="text-blue-600 hover:underline">H-1BVisaJobs</a>
+                                                <a href={safeHref(company.source)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">H-1BVisaJobs</a>
                                             ) : (
                                                 <span>H-1BVisaJobs</span>
                                             )}
                                             <span className="text-gray-400 mx-1">|</span>
-                                            <a href="https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub" className="text-blue-600 hover:underline">USCIS</a>
+                                            <a href="https://www.uscis.gov/tools/reports-and-studies/h-1b-employer-data-hub" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">USCIS</a>
                                         </div>
                                     </div>
                                 </div>
